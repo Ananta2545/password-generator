@@ -40,7 +40,7 @@ export async function POST(req: NextRequest){
 
         return response;
 
-    }catch(error){
+    }catch(error: unknown){
         let message = "Failed to logout";
         if(error instanceof Error){
             message = error.message;

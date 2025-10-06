@@ -34,6 +34,11 @@ export type verify2FARequest = {
     secret?: string;
 }
 
+export type Disable2FARequest = {
+    password: string;
+    token: string;
+}
+
 export type AuthResponse = {
     success: boolean;
     message: string;
