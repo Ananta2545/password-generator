@@ -183,12 +183,12 @@ export default function GeneratorPage() {
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleGenerate} disabled={loading} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300 disabled:opacity-50" style={{ backgroundColor: "var(--btn-bg)", color: "#fff" }}>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleGenerate} disabled={loading} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium cursor-pointer transition-all duration-300 disabled:opacity-50" style={{ backgroundColor: "var(--btn-bg)", color: "#fff" }}>
                 <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
                 Generate New
               </motion.button>
 
-              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSaveToVault} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300" style={{ backgroundColor: "rgba(34, 197, 94, 0.1)", color: "#22c55e", border: "1px solid #22c55e" }}>
+              <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSaveToVault} className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all cursor-pointer duration-300" style={{ backgroundColor: "rgba(34, 197, 94, 0.1)", color: "#22c55e", border: "1px solid #22c55e" }}>
                 <Save className="w-5 h-5" />
                 Save to Vault
               </motion.button>
@@ -197,7 +197,7 @@ export default function GeneratorPage() {
             {/* Security Notice */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="mt-6 p-4 rounded-xl backdrop-blur-sm border" style={{ backgroundColor: "rgba(59, 130, 246, 0.05)", borderColor: "var(--btn-bg)" }}>
               <p style={{ color: "var(--text-muted)" }} className="text-xs">
-                💡 <strong style={{ color: "var(--text)" }}>Security Tip:</strong> Passwords are generated using cryptographically secure randomness. Copied passwords auto-clear from clipboard after 15 seconds.
+                <strong style={{ color: "var(--text)" }}>Security Info:</strong> Passwords are generated using cryptographically secure randomness.
               </p>
             </motion.div>
           </div>
