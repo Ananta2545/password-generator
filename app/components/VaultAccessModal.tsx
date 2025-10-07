@@ -1,16 +1,13 @@
 "use client";
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock, KeyRound, X, Eye, EyeOff } from "lucide-react";
-
 interface VaultAccessModalProps {
   isOpen: boolean;
   requires2FA: boolean;
   onVerify: (password?: string, twoFactorCode?: string) => Promise<void>;
   onClose: () => void;
 }
-
 export default function VaultAccessModal({ 
   isOpen, 
   requires2FA, 
@@ -22,12 +19,10 @@ export default function VaultAccessModal({
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       if (requires2FA) {
         if (!twoFactorCode || twoFactorCode.length !== 6) {
@@ -44,8 +39,6 @@ export default function VaultAccessModal({
         }
         await onVerify(password, undefined);
       }
-      
-      // Reset form
       setPassword("");
       setTwoFactorCode("");
       setError("");
@@ -59,14 +52,12 @@ export default function VaultAccessModal({
       setLoading(false);
     }
   };
-
   const handleClose = () => {
     setPassword("");
     setTwoFactorCode("");
     setError("");
     onClose();
   };
-
   return (
     <AnimatePresence>
       {isOpen && (
@@ -165,7 +156,6 @@ export default function VaultAccessModal({
                 <X size={20} />
               </button>
             </div>
-
             <form onSubmit={handleSubmit}>
               {requires2FA ? (
                 <div style={{ marginBottom: "1.5rem" }}>
@@ -254,7 +244,6 @@ export default function VaultAccessModal({
                   </div>
                 </div>
               )}
-
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -272,7 +261,6 @@ export default function VaultAccessModal({
                   {error}
                 </motion.div>
               )}
-
               <div style={{ display: "flex", gap: "0.75rem" }}>
                 <button
                   type="button"
@@ -315,7 +303,6 @@ export default function VaultAccessModal({
                 </button>
               </div>
             </form>
-
             <div style={{
               marginTop: "1.5rem",
               padding: "1rem",

@@ -10,35 +10,29 @@ export type User = {
     createdAt: Date;
     updatedAt: Date;
 }
-
 export type SignupRequest = {
     firstName: string;
     lastName: string;
     email: string;
     password: string;
 }
-
 export type SigninRequest = {
     email: string;
     password: string;
 }
-
 export type Enable2FAResponse = {
     qrCodeDataUrl: string;
     secret: string;
 }
-
 export type verify2FARequest = {
     userId: string;
     token: string;
     secret?: string;
 }
-
 export type Disable2FARequest = {
     password: string;
     token: string;
 }
-
 export type AuthResponse = {
     success: boolean;
     message: string;
@@ -53,5 +47,4 @@ export type AuthResponse = {
     };
     qrCode?: string;
     require2FA?: boolean;
-
 }

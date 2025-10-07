@@ -3,23 +3,17 @@ import { connectDB } from "@/app/lib/mongodb";
 import User from "@/app/models/user";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-
 export async function POST(req: NextRequest){
     try{
         const body = await req.json();
         const {email, password} = body;
-
-        // validate required fields
         if(!email || !password){
             return NextResponse.json(
                 {success: false, message: "Email and password required"},
                 {status: 400}
             );
         }
-
         await connectDB();
-
-        // find user by email
         const user = await User.findOne({email});
         if(!user){
             return NextResponse.json(
@@ -27,22 +21,15 @@ export async function POST(req: NextRequest){
                 {status: 401}
             );
         }
-
-        // verify password
         const isPasswordValid =await bcrypt.compare(password, user.passwordHash);
-
         if(!isPasswordValid){
             return NextResponse.json(
                 {success: false, message: "Invalid Credentials"},
                 {status: 401}
             );
         }
-
-        // check if 2fa is enabled
         if(user.twoFactorEnabled){
             const tempToken = generateToken(user._id.toString(), email);
-
-            // ✅ Set token in cookie so verify-2fa can read it
             const response = NextResponse.json(
                 {
                     success: true,
@@ -58,21 +45,16 @@ export async function POST(req: NextRequest){
                 },
                 {status: 200}
             );
-
             response.cookies.set('token', tempToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
                 path: '/',
-                maxAge: 7*24*60*60, // 7 days
+                maxAge: 7*24*60*60,
             });
-
             return response;
         }
-
-        // if 2fa disabled, login directly
         const token = generateToken(user._id.toString(), email);
-
         const response = NextResponse.json(
             {
                 success: true,
@@ -87,7 +69,6 @@ export async function POST(req: NextRequest){
                 },
             },{status: 200}
         )
-
         response.cookies.set('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -95,18 +76,13 @@ export async function POST(req: NextRequest){
             path: '/',
             maxAge: 7*24*60*60,
         });
-
         return response;
-
-
     }catch(error){
         let message = "Signin failed";
         console.log("Signin error: ", error);
-
         if(error instanceof Error){
             message = error.message;
         }
-
         return NextResponse.json(
             {successA: false, message, error: message},
             {status: 500}

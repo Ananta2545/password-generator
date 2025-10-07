@@ -4,18 +4,14 @@ import User from "@/app/models/user";
 import { NextRequest, NextResponse } from "next/server";
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
-
 export async function POST(req: NextRequest){
     try{
         const token = req.cookies.get('token')?.value || req.headers.get('authorization')?.replace('Bearer ', '');
-
         if(!token){
             return NextResponse.json(
                 {success: false, message: "Unauthorized"},{status: 401}
             );
         }
-
-        // verify jwt token
         const decoded = verifyToken(token);
         if(!decoded){
             return NextResponse.json(
@@ -23,38 +19,26 @@ export async function POST(req: NextRequest){
                 {status: 401}
             );
         }
-
         await connectDB();
-
         const user = await User.findById(decoded.userId);
-
         if(!user){
             return NextResponse.json(
                 {success: false, message: "User not found"},
                 {status: 400}
             );
         }
-
-        // checking ig 2fa already enabled
         if(user.twoFactorEnabled){
             return NextResponse.json(
                 {success: false, message: "2FA is already enabled"},
                 {status: 400}
             );
         }
-
-        // generate 2fa secret
         const twoFactorSecret = speakeasy.generateSecret({
             name: `PasswordVault (${user.email})`,
         });
-
-        // generate qr code
         const qrCode = await QRCode.toDataURL(twoFactorSecret.otpauth_url || '');
-
-        // save secret but dont enable yet(user first need to verify first)
         user.twoFactorSecret = twoFactorSecret.base32;
         await user.save();
-
         return NextResponse.json({
             success: true,
             message: "2FA setup initiated",
@@ -68,5 +52,4 @@ export async function POST(req: NextRequest){
             success: false, message, error: message
         }, {status: 500})
     }
-
 }

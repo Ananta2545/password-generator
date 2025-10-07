@@ -1,13 +1,11 @@
 "use client";
-
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { Menu, X, User, LogOut, Settings, Shield, Lock, KeyRound } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useUser } from "@/app/contexts/UserContext"; // ✅ Import useUser
-
+import { useUser } from "@/app/contexts/UserContext";
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -17,30 +15,24 @@ export default function Header() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
-
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
-
       logout();
       setShowDropdown(false);
       router.push("/");
@@ -48,11 +40,8 @@ export default function Header() {
       console.error("Logout failed:", error);
     }
   };
-
   if (!mounted) return null;
-
   const isAuthPage = pathname?.startsWith("/auth");
-
   return (
     <nav className="sticky top-0 w-full flex justify-between items-center px-6 md:px-12 py-4 backdrop-blur-lg bg-white/60 dark:bg-black/30 border-b border-gray-200 dark:border-gray-800 z-50">
       <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 300 }}>
@@ -60,11 +49,8 @@ export default function Header() {
           PassGen<span style={{ color: "var(--btn-bg)" }}>Pro</span>
         </Link>
       </motion.div>
-
-     
       <div className="hidden md:flex items-center gap-4">
         {user ? (
-          
           <div className="relative" ref={dropdownRef}>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -81,8 +67,7 @@ export default function Header() {
               </div>
               <span className="font-medium">{user.firstName}</span>
             </motion.button>
-
-            {/* Dropdown Menu */}
+            {}
             <AnimatePresence>
               {showDropdown && (
                 <motion.div
@@ -96,7 +81,7 @@ export default function Header() {
                     borderColor: "var(--card-border)",
                   }}
                 >
-                  {/* User Info */}
+                  {}
                   <div className="px-4 py-3 border-b" style={{ borderColor: "var(--card-border)" }}>
                     <p className="font-semibold" style={{ color: "var(--text)" }}>
                       {user.firstName} {user.lastName}
@@ -105,8 +90,7 @@ export default function Header() {
                       {user.email}
                     </p>
                   </div>
-
-                  {/* Menu Items */}
+                  {}
                   <div className="py-2">
                     <Link
                       href="/dashboard"
@@ -117,7 +101,6 @@ export default function Header() {
                       <Shield className="w-4 h-4" />
                       <span>Dashboard</span>
                     </Link>
-
                     <Link
                       href="/vault"
                       onClick={() => setShowDropdown(false)}
@@ -127,7 +110,6 @@ export default function Header() {
                       <Lock className="w-4 h-4" />
                       <span>Vault</span>
                     </Link>
-
                     <Link
                       href="/generator"
                       onClick={() => setShowDropdown(false)}
@@ -137,7 +119,6 @@ export default function Header() {
                       <KeyRound className="w-4 h-4" />
                       <span>Generator</span>
                     </Link>
-
                     <Link
                       href="/profile"
                       onClick={() => setShowDropdown(false)}
@@ -147,9 +128,7 @@ export default function Header() {
                       <User className="w-4 h-4" />
                       <span>Profile</span>
                     </Link>
-
                     <div className="border-t my-2" style={{ borderColor: "var(--card-border)" }} />
-
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-3 px-4 py-2 w-full text-left transition-colors hover:bg-red-500/10 text-red-500 cursor-pointer"
@@ -163,7 +142,6 @@ export default function Header() {
             </AnimatePresence>
           </div>
         ) : (
-          // Auth Buttons (Original)
           !isAuthPage && (
             <>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -187,7 +165,6 @@ export default function Header() {
             </>
           )
         )}
-
         <motion.button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="ml-3 cursor-pointer p-2 rounded-full transition-all duration-300"
@@ -201,8 +178,7 @@ export default function Header() {
           {theme === "dark" ? "☀️" : "🌙"}
         </motion.button>
       </div>
-
-      {/* Mobile Hamburger */}
+      {}
       <div className="md:hidden flex items-center">
         <motion.button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -212,8 +188,7 @@ export default function Header() {
           {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
         </motion.button>
       </div>
-
-      {/* Mobile Menu */}
+      {}
       {menuOpen && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -223,7 +198,6 @@ export default function Header() {
           style={{ backgroundColor: "var(--bg-gradient-start)" }}
         >
           {user ? (
-            // Mobile User Menu
             <>
               <div className="pb-3 border-b" style={{ borderColor: "var(--card-border)" }}>
                 <p className="font-semibold" style={{ color: "var(--text)" }}>
@@ -233,7 +207,6 @@ export default function Header() {
                   {user.email}
                 </p>
               </div>
-
               <Link
                 href="/profile"
                 onClick={() => setMenuOpen(false)}
@@ -243,7 +216,6 @@ export default function Header() {
                 <User className="w-4 h-4" />
                 Profile
               </Link>
-
               <Link
                 href="/dashboard"
                 onClick={() => setMenuOpen(false)}
@@ -253,7 +225,6 @@ export default function Header() {
                 <Shield className="w-4 h-4" />
                 Dashboard
               </Link>
-
               <Link
                 href="/settings"
                 onClick={() => setMenuOpen(false)}
@@ -263,7 +234,6 @@ export default function Header() {
                 <Settings className="w-4 h-4" />
                 Settings
               </Link>
-
               <button
                 onClick={() => {
                   handleLogout();
@@ -276,7 +246,6 @@ export default function Header() {
               </button>
             </>
           ) : (
-            // Mobile Auth Links (Original)
             !isAuthPage && (
               <>
                 <Link
@@ -298,7 +267,6 @@ export default function Header() {
               </>
             )
           )}
-
           <button
             onClick={() => {
               setTheme(theme === "dark" ? "light" : "dark");

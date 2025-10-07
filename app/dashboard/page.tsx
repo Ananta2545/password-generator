@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/contexts/UserContext";
@@ -7,20 +6,15 @@ import { useVault } from "@/app/contexts/VaultContext";
 import { Loader2, Lock, KeyRound, Shield, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-
 export default function Dashboard() {
   const router = useRouter();
   const { user, loading } = useUser();
   const { itemCount } = useVault();
-
-  // ✅ Redirect to signin if not authenticated
   useEffect(() => {
     if (!loading && !user) {
       router.push("/auth/signin");
     }
   }, [user, loading, router]);
-
-  // ✅ Show loading spinner while checking auth
   if (loading) {
     return (
       <div
@@ -33,10 +27,7 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  // ✅ Don't render if no user
   if (!user) return null;
-
   return (
     <div
       className="min-h-screen pt-20 px-6 pb-12"
@@ -57,8 +48,7 @@ export default function Dashboard() {
             Your secure password management dashboard
           </p>
         </motion.div>
-
-        {/* Stats Cards */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -89,7 +79,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
           <div
             className="backdrop-blur-lg rounded-2xl shadow-lg p-6 border"
             style={{
@@ -114,7 +103,6 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-
           <div
             className="backdrop-blur-lg rounded-2xl shadow-lg p-6 border"
             style={{
@@ -140,8 +128,7 @@ export default function Dashboard() {
             </div>
           </div>
         </motion.div>
-
-        {/* Quick Actions */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -150,9 +137,8 @@ export default function Dashboard() {
           <h2 className="text-2xl font-bold mb-4" style={{ color: "var(--text)" }}>
             Quick Actions
           </h2>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Generate Password */}
+            {}
             <Link href="/generator">
               <motion.div
                 whileHover={{ scale: 1.02, y: -5 }}
@@ -183,8 +169,7 @@ export default function Dashboard() {
                 </p>
               </motion.div>
             </Link>
-
-            {/* Access Vault */}
+            {}
             <Link href="/vault">
               <motion.div
                 whileHover={{ scale: 1.02, y: -5 }}
@@ -215,8 +200,7 @@ export default function Dashboard() {
                 </p>
               </motion.div>
             </Link>
-
-            {/* Profile Settings */}
+            {}
             <Link href="/profile">
               <motion.div
                 whileHover={{ scale: 1.02, y: -5 }}
@@ -247,8 +231,7 @@ export default function Dashboard() {
                 </p>
               </motion.div>
             </Link>
-
-            {/* Security Info */}
+            {}
             <motion.div
               className="backdrop-blur-lg rounded-2xl shadow-lg p-8 border"
               style={{

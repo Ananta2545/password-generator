@@ -19,9 +19,8 @@ export default function LandingPage() {
         color: "var(--text)",
       }}
     >
-      
 
-      {/* Hero Section */}
+      {}
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
@@ -63,7 +62,7 @@ export default function LandingPage() {
           </Link>
         </motion.div>
 
-        {/* Features Section */}
+        {}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,7 +117,7 @@ export default function LandingPage() {
         </motion.div>
       </motion.div>
 
-      {/* Footer */}
+      {}
       <motion.footer
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

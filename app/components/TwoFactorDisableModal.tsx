@@ -1,16 +1,13 @@
 "use client";
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, ShieldOff, Eye, EyeOff } from "lucide-react";
-
 interface TwoFactorDisableModalProps {
   isOpen: boolean;
   onClose: () => void;
   onDisable: (password: string, token: string) => Promise<void>;
   loading?: boolean;
 }
-
 export default function TwoFactorDisableModal({
   isOpen,
   onClose,
@@ -22,27 +19,20 @@ export default function TwoFactorDisableModal({
   const [showPassword, setShowPassword] = useState(false);
   const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState("");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!password.trim()) {
       setError("Please enter your password");
       return;
     }
-
     if (!token.trim() || token.length !== 6) {
       setError("Please enter a valid 6-digit code");
       return;
     }
-
     setLocalLoading(true);
     setError("");
-
     try {
       await onDisable(password, token);
-      // Success handling is done in parent component
-      // Reset form
       setPassword("");
       setToken("");
     } catch (err: unknown) {
@@ -55,21 +45,18 @@ export default function TwoFactorDisableModal({
       setLocalLoading(false);
     }
   };
-
   const handleClose = () => {
     setPassword("");
     setToken("");
     setError("");
     onClose();
   };
-
   const isLoading = loading || localLoading;
-
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
+          {}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -77,15 +64,14 @@ export default function TwoFactorDisableModal({
             onClick={handleClose}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
-
-          {/* Modal */}
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6"
           >
-            {/* Close Button */}
+            {}
             <button
               onClick={handleClose}
               className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -93,8 +79,7 @@ export default function TwoFactorDisableModal({
             >
               <X className="w-5 h-5" />
             </button>
-
-            {/* Header */}
+            {}
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
                 <ShieldOff className="w-6 h-6 text-red-600 dark:text-red-400" />
@@ -108,17 +93,15 @@ export default function TwoFactorDisableModal({
                 </p>
               </div>
             </div>
-
-            {/* Warning */}
+            {}
             <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
               <p className="text-sm text-yellow-800 dark:text-yellow-300">
                 ⚠️ Disabling 2FA will make your account less secure. You&apos;ll only need your password to sign in.
               </p>
             </div>
-
-            {/* Form */}
+            {}
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Password Field */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Current Password
@@ -149,8 +132,7 @@ export default function TwoFactorDisableModal({
                   </button>
                 </div>
               </div>
-
-              {/* 2FA Token Field */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Authenticator Code
@@ -169,8 +151,7 @@ export default function TwoFactorDisableModal({
                   disabled={isLoading}
                 />
               </div>
-
-              {/* Error Message */}
+              {}
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -180,8 +161,7 @@ export default function TwoFactorDisableModal({
                   {error}
                 </motion.div>
               )}
-
-              {/* Action Buttons */}
+              {}
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"

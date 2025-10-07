@@ -1,9 +1,7 @@
 "use client";
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useUser } from "./UserContext";
 import { encryptVaultItem, decryptVaultItem, type VaultItemData } from "@/app/lib/encryption";
-
 export interface VaultItem {
   _id: string;
   encryptedData: string;
@@ -11,14 +9,12 @@ export interface VaultItem {
   createdAt: string;
   lastModified: string;
 }
-
 export interface DecryptedVaultItem extends VaultItemData {
   _id: string;
   tags: string[];
   createdAt: string;
   lastModified: string;
 }
-
 interface VaultContextType {
   items: DecryptedVaultItem[];
   loading: boolean;
@@ -29,11 +25,9 @@ interface VaultContextType {
   deleteItem: (id: string) => Promise<void>;
   encryptionKey: string | null;
   setEncryptionKey: (key: string | null) => void;
-  itemCount: number; // Total count from server (doesn't require decryption)
+  itemCount: number;
 }
-
 const VaultContext = createContext<VaultContextType | undefined>(undefined);
-
 export function VaultProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const [items, setItems] = useState<DecryptedVaultItem[]>([]);
@@ -41,23 +35,16 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState("");
   const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
   const [itemCount, setItemCount] = useState(0);
-
-  // Fetch all vault items
   const fetchItems = async () => {
     if (!user || !encryptionKey) return;
-
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch("/api/vault", {
         credentials: "include",
       });
-
       const data = await res.json();
-
       if (data.success) {
-        // Decrypt all items
         const decryptedItems: DecryptedVaultItem[] = data.items.map((item: VaultItem) => {
           try {
             const decrypted = decryptVaultItem(item.encryptedData, encryptionKey);
@@ -73,7 +60,6 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
             return null;
           }
         }).filter(Boolean);
-
         setItems(decryptedItems);
       } else {
         setError(data.message || "Failed to fetch items");
@@ -85,31 +71,22 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
-
-  // Create new vault item
   const createItem = async (data: VaultItemData, tags: string[] = []) => {
     if (!user || !encryptionKey) {
       throw new Error("Not authenticated or encryption key missing");
     }
-
     setLoading(true);
     setError("");
-
     try {
-      // Encrypt data on client side
       const encrypted = encryptVaultItem(data, encryptionKey);
-
       const res = await fetch("/api/vault", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ encryptedData: encrypted, tags }),
         credentials: "include",
       });
-
       const result = await res.json();
-
       if (result.success) {
-        // Add to local state
         const newItem: DecryptedVaultItem = {
           ...data,
           _id: result.item.id,
@@ -118,7 +95,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
           lastModified: result.item.lastModified,
         };
         setItems((prev) => [newItem, ...prev]);
-        setItemCount((prev) => prev + 1); // Increment count
+        setItemCount((prev) => prev + 1);
       } else {
         throw new Error(result.message || "Failed to create item");
       }
@@ -133,31 +110,22 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
-
-  // Update vault item
   const updateItem = async (id: string, data: VaultItemData, tags: string[] = []) => {
     if (!user || !encryptionKey) {
       throw new Error("Not authenticated or encryption key missing");
     }
-
     setLoading(true);
     setError("");
-
     try {
-      // Encrypt data on client side
       const encrypted = encryptVaultItem(data, encryptionKey);
-
       const res = await fetch(`/api/vault/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ encryptedData: encrypted, tags }),
         credentials: "include",
       });
-
       const result = await res.json();
-
       if (result.success) {
-        // Update local state
         setItems((prev) =>
           prev.map((item) =>
             item._id === id
@@ -179,28 +147,21 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
-
-  // Delete vault item
   const deleteItem = async (id: string) => {
     if (!user) {
       throw new Error("Not authenticated");
     }
-
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch(`/api/vault/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
-
       const result = await res.json();
-
       if (result.success) {
-        // Remove from local state
         setItems((prev) => prev.filter((item) => item._id !== id));
-        setItemCount((prev) => Math.max(0, prev - 1)); // Decrement count
+        setItemCount((prev) => Math.max(0, prev - 1));
       } else {
         throw new Error(result.message || "Failed to delete item");
       }
@@ -215,8 +176,6 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
-
-  // Fetch items when user logs in and encryption key is set
   useEffect(() => {
     if (user && encryptionKey) {
       fetchItems();
@@ -225,15 +184,12 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, encryptionKey]);
-
-  // Fetch item count when user logs in (doesn't require encryption key)
   useEffect(() => {
     const fetchCount = async () => {
       if (!user) {
         setItemCount(0);
         return;
       }
-
       try {
         const res = await fetch("/api/vault/count", {
           credentials: "include",
@@ -246,10 +202,8 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to fetch item count:", err);
       }
     };
-
     fetchCount();
   }, [user]);
-
   return (
     <VaultContext.Provider
       value={{
@@ -269,7 +223,6 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     </VaultContext.Provider>
   );
 }
-
 export function useVault() {
   const context = useContext(VaultContext);
   if (!context) {

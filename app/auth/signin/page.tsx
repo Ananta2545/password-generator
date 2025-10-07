@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -7,14 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { verify2FALogin } from "@/app/lib/twoFactorAuth";
 import { useUser } from "@/app/contexts/UserContext";
-
 function SigninContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered");
   const twofa = searchParams.get("twofa");
   const { setUser } = useUser();
-
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,15 +19,12 @@ function SigninContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
   const [step, setStep] = useState<"signin" | "2fa-verify">("signin");
   const [twoFactorToken, setTwoFactorToken] = useState("");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch("/api/auth/signin", {
         method: "POST",
@@ -38,9 +32,7 @@ function SigninContent() {
         body: JSON.stringify(formData),
         credentials: "include",
       });
-
       const data = await res.json();
-
       if (data.success) {
         if (data.require2FA) {
           setStep("2fa-verify");
@@ -59,18 +51,14 @@ function SigninContent() {
       setLoading(false);
     }
   };
-
   const handleVerify2FA = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const data = await verify2FALogin(twoFactorToken);
-      
-      // Store user info and redirect
       if (data.user) {
-        setUser(data.user); // ✅ Save to context (also saves to localStorage)
+        setUser(data.user);
       }
       router.push("/dashboard");
     } catch (err: unknown) {
@@ -83,13 +71,11 @@ function SigninContent() {
       setLoading(false);
     }
   };
-
   const backToSignin = () => {
     setStep("signin");
     setTwoFactorToken("");
     setError("");
   };
-
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -97,7 +83,6 @@ function SigninContent() {
         background: `linear-gradient(to bottom right, var(--bg-gradient-start), var(--bg-gradient-end))`,
       }}
     >
-
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -112,7 +97,7 @@ function SigninContent() {
               borderColor: "var(--card-border)",
             }}
           >
-            {/* ✅ Success Message After Registration */}
+            {}
             {registered && step === "signin" && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -127,8 +112,7 @@ function SigninContent() {
                 )}
               </motion.div>
             )}
-
-            {/* Step 1: Sign In Form */}
+            {}
             {step === "signin" && (
               <>
                 <h2 style={{ color: "var(--text)" }} className="text-3xl font-bold mb-2">
@@ -137,7 +121,6 @@ function SigninContent() {
                 <p style={{ color: "var(--text-muted)" }} className="mb-6">
                   Sign in to access your password vault
                 </p>
-
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -147,7 +130,6 @@ function SigninContent() {
                     {error}
                   </motion.div>
                 )}
-
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label style={{ color: "var(--text)" }} className="block text-sm font-medium mb-2">
@@ -168,7 +150,6 @@ function SigninContent() {
                       autoFocus
                     />
                   </div>
-
                   <div>
                     <label style={{ color: "var(--text)" }} className="block text-sm font-medium mb-2">
                       Password
@@ -197,7 +178,6 @@ function SigninContent() {
                       </button>
                     </div>
                   </div>
-
                   <motion.button
                     type="submit"
                     disabled={loading}
@@ -216,7 +196,6 @@ function SigninContent() {
                     )}
                   </motion.button>
                 </form>
-
                 <p style={{ color: "var(--text-muted)" }} className="mt-6 text-center text-sm">
                   Don&apos;t have an account?{" "}
                   <Link href="/auth/signup" style={{ color: "var(--btn-bg)" }} className="font-semibold hover:underline">
@@ -225,8 +204,7 @@ function SigninContent() {
                 </p>
               </>
             )}
-
-            {/* Step 2: 2FA Verification */}
+            {}
             {step === "2fa-verify" && (
               <>
                 <div className="text-center mb-6">
@@ -246,7 +224,6 @@ function SigninContent() {
                     Enter the 6-digit code from your authenticator app
                   </p>
                 </div>
-
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -256,7 +233,6 @@ function SigninContent() {
                     {error}
                   </motion.div>
                 )}
-
                 <form onSubmit={handleVerify2FA} className="space-y-4">
                   <div>
                     <label style={{ color: "var(--text)" }} className="block text-sm font-medium mb-2 text-center">
@@ -281,7 +257,6 @@ function SigninContent() {
                       Enter the code from Google Authenticator or Authy
                     </p>
                   </div>
-
                   <motion.button
                     type="submit"
                     disabled={loading || twoFactorToken.length !== 6}
@@ -302,7 +277,6 @@ function SigninContent() {
                       </>
                     )}
                   </motion.button>
-
                   <button
                     type="button"
                     onClick={backToSignin}
@@ -312,8 +286,7 @@ function SigninContent() {
                     ← Back to sign in
                   </button>
                 </form>
-
-                {/* Help Text */}
+                {}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -336,8 +309,6 @@ function SigninContent() {
     </div>
   );
 }
-
-// ✅ Wrap with Suspense to fix hydration mismatch
 export default function SigninPage() {
   return (
     <Suspense fallback={

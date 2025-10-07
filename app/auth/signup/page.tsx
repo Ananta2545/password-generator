@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
@@ -7,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Check, Copy, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { initEnable2FA, verifyAndEnable2FA } from "@/app/lib/twoFactorAuth";
-
 export default function SignupPage() {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
@@ -20,19 +18,15 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
-  // 2FA States
   const [step, setStep] = useState<"signup" | "2fa-setup" | "2fa-verify">("signup");
   const [enable2FA, setEnable2FA] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [secret, setSecret] = useState("");
   const [verificationToken, setVerificationToken] = useState("");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
@@ -40,19 +34,14 @@ export default function SignupPage() {
         body: JSON.stringify(formData),
         credentials: "include",
       });
-
       const data = await res.json();
-
       if (data.success) {
-
-        // Check if user wants to enable 2FA
         if (enable2FA) {
             if (data.token) {
                 sessionStorage.setItem("authToken", data.token);
             }
             await setup2FA();
         } else {
-          // Redirect directly to dashboard
           router.push("/auth/signin?registered=true");
         }
       } else {
@@ -64,11 +53,9 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
-
   const setup2FA = async () => {
     setLoading(true);
     setError("");
-
     try {
       const data = await initEnable2FA();
       setQrCode(data.qrCode || "");
@@ -85,17 +72,13 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
-
   const handleVerify2FA = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
-      // ✅ Pass the 6-digit verification token from the authenticator app
       await verifyAndEnable2FA(verificationToken);
       sessionStorage.removeItem("authToken");
-      // Redirect to signin
       router.push("/auth/signin?registered=true&twofa=enabled");
     } catch (err: unknown) {
         let message = "Verification failed. Please try again.";
@@ -107,15 +90,10 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
-
   const skipTwoFactor = () => {
-    // Clear any stored token
     sessionStorage.removeItem("authToken");
-    
-    // ✅ Redirect to signin
     router.push("/auth/signin?registered=true");
   };
-
   return (
     <div
       className="min-h-screen flex flex-col"
@@ -137,7 +115,7 @@ export default function SignupPage() {
               borderColor: "var(--card-border)",
             }}
           >
-            {/* Step 1: Signup Form */}
+            {}
             {step === "signup" && (
               <>
                 <h2 style={{ color: "var(--text)" }} className="text-3xl font-bold mb-2">
@@ -146,7 +124,6 @@ export default function SignupPage() {
                 <p style={{ color: "var(--text-muted)" }} className="mb-6">
                   Join PassGenPro and secure your passwords today
                 </p>
-
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -156,7 +133,6 @@ export default function SignupPage() {
                     {error}
                   </motion.div>
                 )}
-
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -196,7 +172,6 @@ export default function SignupPage() {
                       />
                     </div>
                   </div>
-
                   <div>
                     <label style={{ color: "var(--text)" }} className="block text-sm font-medium mb-2">
                       Email
@@ -215,7 +190,6 @@ export default function SignupPage() {
                       placeholder="john@example.com"
                     />
                   </div>
-
                   <div>
                     <label style={{ color: "var(--text)" }} className="block text-sm font-medium mb-2">
                       Password
@@ -244,8 +218,7 @@ export default function SignupPage() {
                       </button>
                     </div>
                   </div>
-
-                  {/* 2FA Toggle */}
+                  {}
                   <motion.div
                     whileHover={{ scale: 1.01 }}
                     className="p-4 rounded-xl border transition-all duration-300 cursor-pointer"
@@ -275,7 +248,6 @@ export default function SignupPage() {
                       </div>
                     </div>
                   </motion.div>
-
                   <motion.button
                     type="submit"
                     disabled={loading}
@@ -294,7 +266,6 @@ export default function SignupPage() {
                     )}
                   </motion.button>
                 </form>
-
                 <p style={{ color: "var(--text-muted)" }} className="mt-6 text-center text-sm">
                   Already have an account?{" "}
                   <Link href="/auth/signin" style={{ color: "var(--btn-bg)" }} className="font-semibold hover:underline">
@@ -303,8 +274,7 @@ export default function SignupPage() {
                 </p>
               </>
             )}
-
-            {/* Step 2: 2FA Setup */}
+            {}
             {step === "2fa-setup" && (
               <>
                 <h2 style={{ color: "var(--text)" }} className="text-3xl font-bold mb-2">
@@ -313,7 +283,6 @@ export default function SignupPage() {
                 <p style={{ color: "var(--text-muted)" }} className="mb-6">
                   Scan this QR code with your authenticator app
                 </p>
-
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -323,9 +292,8 @@ export default function SignupPage() {
                     {error}
                   </motion.div>
                 )}
-
                 <div className="space-y-6">
-                  {/* QR Code */}
+                  {}
                   <div className="flex justify-center">
                     <motion.div
                       initial={{ scale: 0.8, opacity: 0 }}
@@ -336,8 +304,7 @@ export default function SignupPage() {
                       <Image src={qrCode} alt="2FA QR Code" width={200} height={200} />
                     </motion.div>
                   </div>
-
-                  {/* Secret Key */}
+                  {}
                   <div className="p-4 rounded-xl backdrop-blur-sm border" style={{ borderColor: "var(--card-border)" }}>
                     <p style={{ color: "var(--text-muted)" }} className="text-xs mb-2">
                       Or enter this code manually:
@@ -360,7 +327,6 @@ export default function SignupPage() {
                             navigator.clipboard.writeText(secret);
                             setCopied(true);
                             setTimeout(()=> setCopied(false), 2000)
-                            // Show toast/notification
                             }}
                             className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:opacity-70"
                             style={{ 
@@ -370,8 +336,7 @@ export default function SignupPage() {
                         >
                             {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                         </button>
-
-                        {/* copied toast */}
+                        {}
                         {copied && (
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
@@ -386,11 +351,9 @@ export default function SignupPage() {
                                 ✓ Copied!
                             </motion.div>
                         )}
-
                         </div>
                   </div>
-
-                  {/* Instructions */}
+                  {}
                   <div className="space-y-2">
                     <p style={{ color: "var(--text)" }} className="font-medium text-sm">
                       Instructions:
@@ -401,8 +364,7 @@ export default function SignupPage() {
                       <li>Enter the 6-digit code below to verify</li>
                     </ol>
                   </div>
-
-                  {/* Proceed to Verification */}
+                  {}
                   <motion.button
                     type="button"
                     onClick={() => setStep("2fa-verify")}
@@ -413,7 +375,6 @@ export default function SignupPage() {
                   >
                     I&apos;ve Scanned the Code
                   </motion.button>
-
                   <button
                     type="button"
                     onClick={skipTwoFactor}
@@ -425,8 +386,7 @@ export default function SignupPage() {
                 </div>
               </>
             )}
-
-            {/* Step 3: 2FA Verification */}
+            {}
             {step === "2fa-verify" && (
               <>
                 <h2 style={{ color: "var(--text)" }} className="text-3xl font-bold mb-2">
@@ -435,7 +395,6 @@ export default function SignupPage() {
                 <p style={{ color: "var(--text-muted)" }} className="mb-6">
                   Enter the 6-digit code from your authenticator app
                 </p>
-
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -445,7 +404,6 @@ export default function SignupPage() {
                     {error}
                   </motion.div>
                 )}
-
                 <form onSubmit={handleVerify2FA} className="space-y-4">
                   <div>
                     <label style={{ color: "var(--text)" }} className="block text-sm font-medium mb-2">
@@ -467,7 +425,6 @@ export default function SignupPage() {
                       autoFocus
                     />
                   </div>
-
                   <motion.button
                     type="submit"
                     disabled={loading || verificationToken.length !== 6}
@@ -485,7 +442,6 @@ export default function SignupPage() {
                       "Verify & Complete"
                     )}
                   </motion.button>
-
                   <button
                     type="button"
                     onClick={() => setStep("2fa-setup")}
@@ -494,7 +450,6 @@ export default function SignupPage() {
                   >
                     ← Back to QR code
                   </button>
-
                   <button
                     type="button"
                     onClick={skipTwoFactor}

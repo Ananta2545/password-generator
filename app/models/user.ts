@@ -1,5 +1,4 @@
 import mongoose, { Model, Schema } from "mongoose";
-
 type UserDocument = {
     firstName: string;
     lastName: string;
@@ -10,7 +9,6 @@ type UserDocument = {
     createdAt: Date;
     updatedAt: Date;
 }
-
 const UserSchema = new Schema<UserDocument>(
     {
         firstName: {
@@ -47,7 +45,5 @@ const UserSchema = new Schema<UserDocument>(
         timestamps: true,
     }
 );
-
 const User: Model<UserDocument> = mongoose.models.User || mongoose.model<UserDocument> ('User', UserSchema);
-
 export default User;

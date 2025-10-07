@@ -1,10 +1,8 @@
 "use client";
-
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Loader2, ShieldCheck } from "lucide-react";
 import Image from "next/image";
-
 interface TwoFactorEnableModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,7 +11,6 @@ interface TwoFactorEnableModalProps {
   onVerify: (token: string) => Promise<void>;
   loading?: boolean;
 }
-
 export default function TwoFactorEnableModal({
   isOpen,
   onClose,
@@ -26,26 +23,21 @@ export default function TwoFactorEnableModal({
   const [verificationToken, setVerificationToken] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
   const [error, setError] = useState("");
-
   const handleCopy = async () => {
     await navigator.clipboard.writeText(secret);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verificationToken.trim()) {
       setError("Please enter the verification code");
       return;
     }
-
     setLocalLoading(true);
     setError("");
-
     try {
       await onVerify(verificationToken);
-      // Success handling is done in parent component
     } catch (err: unknown) {
         let message = "Verification failed. Please try again.";
         if(err instanceof Error){
@@ -56,14 +48,12 @@ export default function TwoFactorEnableModal({
       setLocalLoading(false);
     }
   };
-
   const isLoading = loading || localLoading;
-
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
+          {}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -71,15 +61,14 @@ export default function TwoFactorEnableModal({
             onClick={onClose}
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
           />
-
-          {/* Modal */}
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 max-h-[90vh] overflow-y-auto"
           >
-            {/* Close Button */}
+            {}
             <button
               onClick={onClose}
               className="absolute top-4 right-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -87,8 +76,7 @@ export default function TwoFactorEnableModal({
             >
               <X className="w-5 h-5" />
             </button>
-
-            {/* Header */}
+            {}
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
                 <ShieldCheck className="w-6 h-6 text-purple-600 dark:text-purple-400" />
@@ -102,8 +90,7 @@ export default function TwoFactorEnableModal({
                 </p>
               </div>
             </div>
-
-            {/* QR Code */}
+            {}
             <div className="mb-6">
               <div className="bg-white p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 flex justify-center">
                 {qrCode && (
@@ -117,8 +104,7 @@ export default function TwoFactorEnableModal({
                 )}
               </div>
             </div>
-
-            {/* Manual Entry */}
+            {}
             <div className="mb-6">
               <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Or enter this code manually:
@@ -140,8 +126,7 @@ export default function TwoFactorEnableModal({
                 </button>
               </div>
             </div>
-
-            {/* Verification Form */}
+            {}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -162,8 +147,7 @@ export default function TwoFactorEnableModal({
                   autoFocus
                 />
               </div>
-
-              {/* Error Message */}
+              {}
               {error && (
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -173,8 +157,7 @@ export default function TwoFactorEnableModal({
                   {error}
                 </motion.div>
               )}
-
-              {/* Action Buttons */}
+              {}
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
@@ -200,8 +183,7 @@ export default function TwoFactorEnableModal({
                 </button>
               </div>
             </form>
-
-            {/* Info */}
+            {}
             <p className="mt-4 text-xs text-gray-500 dark:text-gray-400 text-center">
               Use apps like Google Authenticator, Authy, or 1Password
             </p>

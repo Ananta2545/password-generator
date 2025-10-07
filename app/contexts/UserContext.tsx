@@ -1,7 +1,5 @@
 "use client";
-
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-
 interface User {
   id: string;
   firstName: string;
@@ -9,7 +7,6 @@ interface User {
   email: string;
   twoFactorEnabled: boolean;
 }
-
 interface UserContextType {
   user: User | null;
   loading: boolean;
@@ -17,15 +14,11 @@ interface UserContextType {
   setUser: (user: User | null) => void;
   logout: () => void;
 }
-
 const UserContext = createContext<UserContextType | undefined>(undefined);
-
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    // ✅ Load user from localStorage on mount
     const loadUser = () => {
       try {
         const storedUser = localStorage.getItem("user");
@@ -39,43 +32,33 @@ export function UserProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     };
-
     loadUser();
   }, []);
-
   const updateUser = (updates: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
-      
-      // ✅ Persist to localStorage
       localStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
-
   const handleSetUser = (newUser: User | null) => {
     setUser(newUser);
-    
-    // ✅ Persist to localStorage
     if (newUser) {
       localStorage.setItem("user", JSON.stringify(newUser));
     } else {
       localStorage.removeItem("user");
     }
   };
-
   const logout = () => {
     setUser(null);
     localStorage.removeItem("user");
   };
-
   return (
     <UserContext.Provider value={{ user, loading, updateUser, setUser: handleSetUser, logout }}>
       {children}
     </UserContext.Provider>
   );
 }
-
 export function useUser() {
   const context = useContext(UserContext);
   if (context === undefined) {

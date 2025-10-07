@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail, Shield, Edit2, Save, X, Loader2, ArrowLeft } from "lucide-react";
@@ -9,7 +8,6 @@ import Link from "next/link";
 import TwoFactorEnableModal from "@/app/components/TwoFactorEnableModal";
 import TwoFactorDisableModal from "@/app/components/TwoFactorDisableModal";
 import { initEnable2FA, verifyAndEnable2FA, disable2FA } from "@/app/lib/twoFactorAuth";
-
 export default function ProfilePage() {
   const router = useRouter();
   const { user, updateUser, loading: userLoading } = useUser();
@@ -25,20 +23,15 @@ export default function ProfilePage() {
     firstName: "",
     lastName: "",
   });
-  const [mounted, setMounted] = useState(false); // ✅ Add mounted state
-
-  // ✅ Set mounted to true on client side only
+  const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // ✅ Only redirect if mounted and NOT loading and user is null
   useEffect(() => {
     if (mounted && !userLoading && !user) {
       router.push("/auth/signin");
     }
   }, [user, userLoading, router, mounted]);
-
   useEffect(() => {
     if (user) {
       setFormData({
@@ -47,7 +40,6 @@ export default function ProfilePage() {
       });
     }
   }, [user]);
-
   const handleSave = () => {
     updateUser({
       firstName: formData.firstName,
@@ -57,7 +49,6 @@ export default function ProfilePage() {
     setSuccess("Profile updated successfully!");
     setTimeout(() => setSuccess(""), 3000);
   };
-
   const handleCancel = () => {
     if (user) {
       setFormData({
@@ -67,12 +58,9 @@ export default function ProfilePage() {
       setIsEditing(false);
     }
   };
-
-  // ✅ Enable 2FA - Step 1: Generate QR Code
   const handleInitEnable2FA = async () => {
     setLoading(true);
     setError("");
-
     try {
       const data = await initEnable2FA();
       setSecret(data.secret || "");
@@ -90,8 +78,6 @@ export default function ProfilePage() {
       setLoading(false);
     }
   };
-
-  // ✅ Enable 2FA - Step 2: Verify Token
   const handleVerifyEnable2FA = async (token: string) => {
     try {
       await verifyAndEnable2FA(token);
@@ -102,11 +88,9 @@ export default function ProfilePage() {
       setSecret("");
       setTimeout(() => setSuccess(""), 3000);
     } catch (error: unknown) {
-      throw error; // Let modal handle the error
+      throw error;
     }
   };
-
-  // ✅ Disable 2FA
   const handleDisable2FA = async (password: string, token: string) => {
     try {
       await disable2FA(password, token);
@@ -115,16 +99,12 @@ export default function ProfilePage() {
       setShowDisableModal(false);
       setTimeout(() => setSuccess(""), 3000);
     } catch (error: unknown) {
-      throw error; // Let modal handle the error
+      throw error;
     }
   };
-
-  // ✅ Show nothing on server-side render to prevent hydration mismatch
   if (!mounted) {
     return null;
   }
-
-  // ✅ Show loading spinner while checking auth (client-side only)
   if (userLoading) {
     return (
       <div
@@ -137,10 +117,7 @@ export default function ProfilePage() {
       </div>
     );
   }
-
-  // ✅ Don't render if no user (will redirect)
   if (!user) return null;
-
   return (
     <div
       className="min-h-screen flex flex-col pt-20"
@@ -155,7 +132,7 @@ export default function ProfilePage() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-2xl"
         >
-          {/* Back to Dashboard Button */}
+          {}
           <Link href="/dashboard">
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -170,7 +147,6 @@ export default function ProfilePage() {
               Back to Dashboard
             </motion.button>
           </Link>
-
           <div
             className="backdrop-blur-lg rounded-2xl shadow-2xl p-8 border"
             style={{
@@ -178,7 +154,7 @@ export default function ProfilePage() {
               borderColor: "var(--card-border)",
             }}
           >
-            {/* Header */}
+            {}
             <div className="flex items-center justify-between mb-6">
               <h2 style={{ color: "var(--text)" }} className="text-3xl font-bold">
                 Profile
@@ -222,8 +198,7 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-
-            {/* Success/Error Messages */}
+            {}
             {success && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -233,7 +208,6 @@ export default function ProfilePage() {
                 ✓ {success}
               </motion.div>
             )}
-
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -243,8 +217,7 @@ export default function ProfilePage() {
                 {error}
               </motion.div>
             )}
-
-            {/* Profile Avatar */}
+            {}
             <div className="flex justify-center mb-6">
               <div
                 className="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold"
@@ -254,10 +227,9 @@ export default function ProfilePage() {
                 {user.lastName.charAt(0)}
               </div>
             </div>
-
-            {/* Profile Info */}
+            {}
             <div className="space-y-4">
-              {/* Name Fields */}
+              {}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label
@@ -292,7 +264,6 @@ export default function ProfilePage() {
                     </p>
                   )}
                 </div>
-
                 <div>
                   <label
                     style={{ color: "var(--text)" }}
@@ -327,8 +298,7 @@ export default function ProfilePage() {
                   )}
                 </div>
               </div>
-
-              {/* Email */}
+              {}
               <div>
                 <label
                   style={{ color: "var(--text)" }}
@@ -347,8 +317,7 @@ export default function ProfilePage() {
                   {user.email}
                 </p>
               </div>
-
-              {/* 2FA Status */}
+              {}
               <div>
                 <label
                   style={{ color: "var(--text)" }}
@@ -379,8 +348,7 @@ export default function ProfilePage() {
                       </span>
                     )}
                   </div>
-
-                  {/* Enable/Disable Button */}
+                  {}
                   {user.twoFactorEnabled ? (
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -414,8 +382,7 @@ export default function ProfilePage() {
           </div>
         </motion.div>
       </div>
-
-      {/* Enable 2FA Modal */}
+      {}
       <TwoFactorEnableModal
         isOpen={showEnableModal}
         onClose={() => {
@@ -427,8 +394,7 @@ export default function ProfilePage() {
         secret={secret}
         onVerify={handleVerifyEnable2FA}
       />
-
-      {/* Disable 2FA Modal */}
+      {}
       <TwoFactorDisableModal
         isOpen={showDisableModal}
         onClose={() => setShowDisableModal(false)}
