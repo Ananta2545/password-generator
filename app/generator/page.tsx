@@ -65,16 +65,15 @@ export default function GeneratorPage() {
       // Auto-clear clipboard after 15 seconds
       setTimeout(async () => {
         try {
-          // Only clear if document is focused (user hasn't switched tabs)
-          if (document.hasFocus()) {
-            const current = await navigator.clipboard.readText();
-            if (current === password) {
-              await navigator.clipboard.writeText("");
-            }
+          const current = await navigator.clipboard.readText();
+          // Clear clipboard if it still contains the password
+          if (current === password) {
+            await navigator.clipboard.writeText("");
+            console.log("Clipboard cleared after 15 seconds");
           }
         } catch (err) {
-          // Silently fail if clipboard access denied (user switched tabs/windows)
-          console.debug("Clipboard auto-clear skipped:", err);
+          // Silently fail if clipboard access denied
+          console.debug("Clipboard auto-clear failed:", err);
         }
       }, 15000);
 

@@ -235,14 +235,15 @@ function VaultContent() {
       setCopiedId(id);
       setTimeout(async () => {
         try {
-          // Only clear if document is focused (user hasn't switched tabs)
-          if (document.hasFocus()) {
-            const current = await navigator.clipboard.readText();
-            if (current === text) await navigator.clipboard.writeText("");
+          const current = await navigator.clipboard.readText();
+          // Clear clipboard if it still contains the copied text
+          if (current === text) {
+            await navigator.clipboard.writeText("");
+            console.log("Clipboard cleared after 15 seconds");
           }
         } catch (err) {
-          // Silently fail if clipboard access denied (user switched tabs/windows)
-          console.debug("Clipboard auto-clear skipped:", err);
+          // Silently fail if clipboard access denied
+          console.debug("Clipboard auto-clear failed:", err);
         }
       }, 15000);
       setTimeout(() => setCopiedId(null), 2000);
