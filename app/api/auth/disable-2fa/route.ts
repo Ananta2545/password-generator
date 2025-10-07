@@ -13,14 +13,13 @@ export async function POST(req: NextRequest){
         // validate
         if(!password || !twoFactorToken){
             return NextResponse.json(
-                {success: false, message: "password and 2FA token required"},
+                {success: false, message: "Password and 2FA token required"},
                 {status: 400}
             );
         }
 
-        // get jwt token from authorizatoion header
-        const authHeader = req.headers.get('authorization');
-        const jwtToken = authHeader?.replace('Bearer ', '');
+        // ✅ Get JWT token from cookies (NOT Authorization header)
+        const jwtToken = req.cookies.get('token')?.value;
 
         if(!jwtToken){
             return NextResponse.json(
@@ -67,7 +66,7 @@ export async function POST(req: NextRequest){
         }
 
         // verify 2fa token to ensure user has access to authenticator
-        const isValid =speakeasy.totp.verify({
+        const isValid = speakeasy.totp.verify({
             secret: user.twoFactorSecret,
             encoding: 'base32',
             token: twoFactorToken,
@@ -76,7 +75,7 @@ export async function POST(req: NextRequest){
 
         if(!isValid){
             return NextResponse.json(
-                {success: false, message: "invalid 2FA token"},
+                {success: false, message: "Invalid 2FA token"},
                 {status: 401}
             );
         }
@@ -101,7 +100,9 @@ export async function POST(req: NextRequest){
         );
 
     }catch(error: unknown){
-        let message = "Failed to disable 2fa";
+        let message = "Failed to disable 2FA";
+        console.error("Disable 2FA error:", error);
+        
         if(error instanceof Error){
             message = error.message;
         }
