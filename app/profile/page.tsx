@@ -2,11 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Mail, Shield, Edit2, Save, X, Loader2, AlertTriangle, ArrowLeft, Eye, EyeOff, QrCode, Copy, Check } from "lucide-react";
+import { Mail, Shield, Edit2, Save, X, Loader2, AlertTriangle, ArrowLeft, Eye, EyeOff, QrCode as QrCodeIcon, Copy, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/contexts/UserContext";
 import Link from "next/link";
 import QRCode from "qrcode";
+import { initEnable2FA, verifyAndEnable2FA, disable2FA } from "@/app/lib/twoFactorAuth";
+import TwoFactorEnableModal from "@/app/components/TwoFactorEnableModal";
+import TwoFactorDisableModal from "@/app/components/TwoFactorDisableModal";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -17,22 +20,11 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("");
   const [showDisableModal, setShowDisableModal] = useState(false);
   const [showEnableModal, setShowEnableModal] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [qrCode, setQrCode] = useState("");
   const [secret, setSecret] = useState("");
-  const [copied, setCopied] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-  });
-
-  const [disableData, setDisableData] = useState({
-    password: "",
-    token: "",
-  });
-
-  const [enableData, setEnableData] = useState({
-    token: "",
   });
 
   useEffect(() => {
@@ -72,27 +64,12 @@ export default function ProfilePage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/enable-2fa", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setSecret(data.secret);
-
-        // ✅ Generate QR Code from qrCodeUrl
-        const qrCodeDataUrl = await QRCode.toDataURL(data.qrCodeUrl);
-        setQrCode(qrCodeDataUrl);
-        setShowEnableModal(true);
-      } else {
-        setError(data.message || "Failed to generate 2FA setup");
-        setTimeout(() => setError(""), 3000);
-      }
-    } catch (err) {
-      console.error("Enable 2FA error:", err);
-      setError("Something went wrong. Please try again.");
+      const data = await initEnable2FA();
+      setSecret(data.secret || "");
+      setQrCode(data.qrCode || "");
+      setShowEnableModal(true);
+    } catch (err: any) {
+      setError(err.message || "Failed to generate 2FA setup");
       setTimeout(() => setError(""), 3000);
     } finally {
       setLoading(false);
@@ -100,88 +77,23 @@ export default function ProfilePage() {
   };
 
   // ✅ Enable 2FA - Step 2: Verify Token
-  const handleVerifyEnable2FA = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/auth/verify-enable-2fa", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token: enableData.token,
-        }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        updateUser({ twoFactorEnabled: true });
-        setSuccess("Two-factor authentication enabled successfully!");
-        setShowEnableModal(false);
-        setEnableData({ token: "" });
-        setQrCode("");
-        setSecret("");
-        setTimeout(() => setSuccess(""), 3000);
-      } else {
-        setError(data.message || "Invalid 2FA code");
-      }
-    } catch (err) {
-      console.error("Verify 2FA error:", err);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  const handleVerifyEnable2FA = async (token: string) => {
+    const data = await verifyAndEnable2FA(token);
+    updateUser({ twoFactorEnabled: true });
+    setSuccess("Two-factor authentication enabled successfully!");
+    setShowEnableModal(false);
+    setQrCode("");
+    setSecret("");
+    setTimeout(() => setSuccess(""), 3000);
   };
 
   // ✅ Disable 2FA
-  const handleDisable2FA = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
-
-    try {
-      const res = await fetch("/api/auth/disable-2fa", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          password: disableData.password,
-          token: disableData.token,
-        }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        updateUser({ twoFactorEnabled: false });
-        setSuccess("Two-factor authentication disabled successfully!");
-        setShowDisableModal(false);
-        setDisableData({ password: "", token: "" });
-        setTimeout(() => setSuccess(""), 3000);
-      } else {
-        setError(data.message || "Failed to disable 2FA");
-      }
-    } catch (err) {
-      console.error("Disable 2FA error:", err);
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ✅ Copy Secret to Clipboard
-  const handleCopySecret = () => {
-    navigator.clipboard.writeText(secret);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleDisable2FA = async (password: string, token: string) => {
+    await disable2FA(password, token);
+    updateUser({ twoFactorEnabled: false });
+    setSuccess("Two-factor authentication disabled successfully!");
+    setShowDisableModal(false);
+    setTimeout(() => setSuccess(""), 3000);
   };
 
   if (!user) return null;
@@ -461,315 +373,26 @@ export default function ProfilePage() {
       </div>
 
       {/* ✅ Enable 2FA Modal */}
-      {showEnableModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="w-full max-w-md rounded-2xl shadow-2xl p-6 border"
-            style={{
-              backgroundColor: "var(--bg-gradient-start)",
-              borderColor: "var(--card-border)",
-            }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center">
-                <QrCode className="w-6 h-6 text-green-500" />
-              </div>
-              <div>
-                <h3 style={{ color: "var(--text)" }} className="text-xl font-bold">
-                  Enable 2FA
-                </h3>
-                <p style={{ color: "var(--text-muted)" }} className="text-sm">
-                  Scan QR code with your authenticator app
-                </p>
-              </div>
-            </div>
-
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500 text-red-500 text-sm"
-              >
-                {error}
-              </motion.div>
-            )}
-
-            <form onSubmit={handleVerifyEnable2FA} className="space-y-4">
-              {/* QR Code */}
-              <div className="flex flex-col items-center">
-                {qrCode && (
-                  <img
-                    src={qrCode}
-                    alt="2FA QR Code"
-                    className="w-48 h-48 mb-4 rounded-lg bg-white p-2"
-                  />
-                )}
-
-                {/* Manual Entry */}
-                <div
-                  className="w-full p-3 rounded-lg border"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.05)",
-                    borderColor: "var(--card-border)",
-                  }}
-                >
-                  <p style={{ color: "var(--text-muted)" }} className="text-xs mb-2">
-                    Or enter this code manually:
-                  </p>
-                  <div className="flex items-center justify-between gap-2">
-                    <code
-                      style={{ color: "var(--text)" }}
-                      className="text-sm font-mono break-all"
-                    >
-                      {secret}
-                    </code>
-                    <button
-                      type="button"
-                      onClick={handleCopySecret}
-                      className="flex-shrink-0 p-2 rounded-lg hover:bg-white/10 transition-colors"
-                      style={{ color: "var(--text)" }}
-                    >
-                      {copied ? (
-                        <Check className="w-4 h-4 text-green-500" />
-                      ) : (
-                        <Copy className="w-4 h-4" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Verification Code */}
-              <div>
-                <label
-                  style={{ color: "var(--text)" }}
-                  className="block text-sm font-medium mb-2"
-                >
-                  Verification Code
-                </label>
-                <input
-                  type="text"
-                  required
-                  maxLength={6}
-                  value={enableData.token}
-                  onChange={(e) =>
-                    setEnableData({ token: e.target.value.replace(/\D/g, "") })
-                  }
-                  className="w-full px-4 py-3 rounded-xl backdrop-blur-sm border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 text-center text-2xl tracking-widest font-mono"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    borderColor: "var(--card-border)",
-                    color: "var(--text)",
-                  }}
-                  placeholder="000000"
-                  autoFocus
-                />
-                <p style={{ color: "var(--text-muted)" }} className="text-xs mt-2">
-                  Enter the 6-digit code from your authenticator app
-                </p>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={loading || enableData.token.length !== 6}
-                  className="flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-300 bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Verifying...
-                    </>
-                  ) : (
-                    "Enable 2FA"
-                  )}
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="button"
-                  onClick={() => {
-                    setShowEnableModal(false);
-                    setError("");
-                    setEnableData({ token: "" });
-                    setQrCode("");
-                    setSecret("");
-                  }}
-                  disabled={loading}
-                  className="flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    color: "var(--text)",
-                  }}
-                >
-                  Cancel
-                </motion.button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
+      <TwoFactorEnableModal
+        isOpen={showEnableModal}
+        onClose={() => {
+          setShowEnableModal(false);
+          setQrCode("");
+          setSecret("");
+        }}
+        qrCode={qrCode}
+        secret={secret}
+        onVerify={handleVerifyEnable2FA}
+        loading={loading}
+      />
 
       {/* Disable 2FA Modal */}
-      {showDisableModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="w-full max-w-md rounded-2xl shadow-2xl p-6 border"
-            style={{
-              backgroundColor: "var(--bg-gradient-start)",
-              borderColor: "var(--card-border)",
-            }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-6 h-6 text-red-500" />
-              </div>
-              <div>
-                <h3 style={{ color: "var(--text)" }} className="text-xl font-bold">
-                  Disable 2FA?
-                </h3>
-                <p style={{ color: "var(--text-muted)" }} className="text-sm">
-                  Verify your identity to proceed
-                </p>
-              </div>
-            </div>
-
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500 text-red-500 text-sm"
-              >
-                {error}
-              </motion.div>
-            )}
-
-            <form onSubmit={handleDisable2FA} className="space-y-4">
-              {/* Password Field */}
-              <div>
-                <label
-                  style={{ color: "var(--text)" }}
-                  className="block text-sm font-medium mb-2"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={disableData.password}
-                    onChange={(e) =>
-                      setDisableData({ ...disableData, password: e.target.value })
-                    }
-                    className="w-full px-4 py-3 rounded-xl backdrop-blur-sm border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500"
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                      borderColor: "var(--card-border)",
-                      color: "var(--text)",
-                    }}
-                    placeholder="Enter your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70 transition-opacity"
-                    style={{ color: "var(--text-muted)" }}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* 2FA Token Field */}
-              <div>
-                <label
-                  style={{ color: "var(--text)" }}
-                  className="block text-sm font-medium mb-2"
-                >
-                  2FA Code
-                </label>
-                <input
-                  type="text"
-                  required
-                  maxLength={6}
-                  value={disableData.token}
-                  onChange={(e) =>
-                    setDisableData({
-                      ...disableData,
-                      token: e.target.value.replace(/\D/g, ""),
-                    })
-                  }
-                  className="w-full px-4 py-3 rounded-xl backdrop-blur-sm border transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-red-500 text-center text-2xl tracking-widest font-mono"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    borderColor: "var(--card-border)",
-                    color: "var(--text)",
-                  }}
-                  placeholder="000000"
-                />
-                <p style={{ color: "var(--text-muted)" }} className="text-xs mt-2">
-                  Enter the 6-digit code from your authenticator app
-                </p>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={
-                    loading ||
-                    !disableData.password ||
-                    disableData.token.length !== 6
-                  }
-                  className="flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-300 bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Disabling...
-                    </>
-                  ) : (
-                    "Disable 2FA"
-                  )}
-                </motion.button>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="button"
-                  onClick={() => {
-                    setShowDisableModal(false);
-                    setError("");
-                    setDisableData({ password: "", token: "" });
-                  }}
-                  disabled={loading}
-                  className="flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-300 disabled:opacity-50"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    color: "var(--text)",
-                  }}
-                >
-                  Cancel
-                </motion.button>
-              </div>
-            </form>
-          </motion.div>
-        </div>
-      )}
+      <TwoFactorDisableModal
+        isOpen={showDisableModal}
+        onClose={() => setShowDisableModal(false)}
+        onDisable={handleDisable2FA}
+        loading={loading}
+      />
     </div>
   );
 }

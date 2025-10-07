@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { Check, Copy, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import Header from "@/app/components/Header";
 import Image from "next/image";
+import { initEnable2FA, verifyAndEnable2FA } from "@/app/lib/twoFactorAuth";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -78,22 +79,13 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/enable-2fa", {
-        method: "POST",
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        setQrCode(data.qrCode);
-        setSecret(data.secret);
-        setStep("2fa-setup");
-      } else {
-        setError(data.message || "Failed to setup 2FA");
-      }
-    } catch (err) {
-      setError("Failed to setup 2FA. Please try again.");
+      const data = await initEnable2FA();
+      setQrCode(data.qrCode || "");
+      setSecret(data.secret || "");
+      setStep("2fa-setup");
+    } catch (err: any) {
+      console.error("Setup 2FA error:", err);
+      setError(err.message || "Failed to setup 2FA. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -105,33 +97,21 @@ export default function SignupPage() {
     setError("");
 
     try {
-        const token = sessionStorage.getItem("authToken");
+      const token = sessionStorage.getItem("authToken");
 
-        if (!token) {
-            setError("Authentication token not found. Please sign in again.");
-            setLoading(false);
-            return;
-        }
-
-      const res = await fetch("/api/auth/verify-enable-2fa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}`},
-        body: JSON.stringify({ token: verificationToken }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        sessionStorage.removeItem("authToken");
-
-        // Redirect to dashboard
-        router.push("/auth/signin?registered=true&twofa=enabled");
-      } else {
-        setError(data.message || "Invalid verification code");
+      if (!token) {
+        setError("Authentication token not found. Please sign in again.");
+        setLoading(false);
+        return;
       }
-    } catch (err) {
-      setError("Verification failed. Please try again.");
+
+      await verifyAndEnable2FA(verificationToken, token);
+      sessionStorage.removeItem("authToken");
+      
+      // Redirect to signin
+      router.push("/auth/signin?registered=true&twofa=enabled");
+    } catch (err: any) {
+      setError(err.message || "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }

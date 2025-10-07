@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import Header from "@/app/components/Header";
+import { verify2FALogin } from "@/app/lib/twoFactorAuth";
 
 export default function SigninPage() {
   const router = useRouter();
@@ -69,29 +70,15 @@ export default function SigninPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/auth/verify-2fa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token: twoFactorToken,
-          tempToken: tempToken,
-        }),
-        credentials: "include",
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        // Store user info and redirect
-        if (data.user) {
-          localStorage.setItem("user", JSON.stringify(data.user));
-        }
-        router.push("/dashboard");
-      } else {
-        setError(data.message || "Invalid 2FA code");
+      const data = await verify2FALogin(twoFactorToken);
+      
+      // Store user info and redirect
+      if (data.user) {
+        localStorage.setItem("user", JSON.stringify(data.user));
       }
-    } catch (err) {
-      setError("Verification failed. Please try again.");
+      router.push("/dashboard");
+    } catch (err: any) {
+      setError(err.message || "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }
