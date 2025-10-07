@@ -4,14 +4,14 @@ import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
-import { Menu, X, User, LogOut, Settings, Shield } from "lucide-react";
+import { Menu, X, User, LogOut, Settings, Shield, Lock, KeyRound } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useUser } from "@/app/contexts/UserContext"; // ✅ Import useUser
 
 export default function Header() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { user, logout } = useUser(); // ✅ Use context instead of state
+  const { user, logout } = useUser();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -41,7 +41,7 @@ export default function Header() {
         credentials: "include",
       });
 
-      logout(); // ✅ Use context logout
+      logout();
       setShowDropdown(false);
       router.push("/");
     } catch (error) {
@@ -61,10 +61,10 @@ export default function Header() {
         </Link>
       </motion.div>
 
-      {/* Desktop Menu */}
+     
       <div className="hidden md:flex items-center gap-4">
         {user ? (
-          // User Profile Dropdown
+          
           <div className="relative" ref={dropdownRef}>
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -79,7 +79,7 @@ export default function Header() {
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                 <User className="w-5 h-5" />
               </div>
-              <span className="font-medium">{user.firstName}</span> {/* ✅ Updates automatically */}
+              <span className="font-medium">{user.firstName}</span>
             </motion.button>
 
             {/* Dropdown Menu */}
@@ -109,16 +109,6 @@ export default function Header() {
                   {/* Menu Items */}
                   <div className="py-2">
                     <Link
-                      href="/profile"
-                      onClick={() => setShowDropdown(false)}
-                      className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/5"
-                      style={{ color: "var(--text)" }}
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Profile</span>
-                    </Link>
-
-                    <Link
                       href="/dashboard"
                       onClick={() => setShowDropdown(false)}
                       className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/5"
@@ -126,6 +116,36 @@ export default function Header() {
                     >
                       <Shield className="w-4 h-4" />
                       <span>Dashboard</span>
+                    </Link>
+
+                    <Link
+                      href="/vault"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/5"
+                      style={{ color: "var(--text)" }}
+                    >
+                      <Lock className="w-4 h-4" />
+                      <span>Vault</span>
+                    </Link>
+
+                    <Link
+                      href="/generator"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/5"
+                      style={{ color: "var(--text)" }}
+                    >
+                      <KeyRound className="w-4 h-4" />
+                      <span>Generator</span>
+                    </Link>
+
+                    <Link
+                      href="/profile"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 px-4 py-2 transition-colors hover:bg-white/5"
+                      style={{ color: "var(--text)" }}
+                    >
+                      <User className="w-4 h-4" />
+                      <span>Profile</span>
                     </Link>
 
                     <Link
