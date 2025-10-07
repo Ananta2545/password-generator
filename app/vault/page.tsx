@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/contexts/UserContext";
-import { useVault } from "@/app/contexts/VaultContext";
+import { useVault, type DecryptedVaultItem } from "@/app/contexts/VaultContext";
 import { useGenerator } from "@/app/contexts/GeneratorContext";
 import { Loader2, Plus, Search, Lock, Eye, EyeOff, Copy, Edit2, Trash2, Check, X, Save, KeyRound, ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -21,7 +21,7 @@ function VaultContent() {
   const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<DecryptedVaultItem | null>(null);
   const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
@@ -112,8 +112,11 @@ function VaultContent() {
 
       setVaultAccessVerified(true);
       setShowAccessModal(false);
-    } catch (err: any) {
-      throw new Error(err.message || "Verification failed");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error("Verification failed");
     }
   };
 
@@ -140,7 +143,7 @@ function VaultContent() {
         try {
           decryptVaultItem(data.items[0].encryptedData, keyInput);
           // If decryption succeeds, the key is correct
-        } catch (decryptError) {
+        } catch (_decryptError) {
           setKeyError("Invalid encryption key. Unable to decrypt vault items.");
           setKeyLoading(false);
           return;
@@ -152,15 +155,15 @@ function VaultContent() {
       setShowKeyPrompt(false);
       setKeyInput("");
       setKeyError("");
-    } catch (err) {
-      console.error("Key validation error:", err);
+    } catch (error: unknown) {
+      console.error("Key validation error:", error);
       setKeyError("Failed to validate encryption key. Please try again.");
     } finally {
       setKeyLoading(false);
     }
   };
 
-  const handleOpenModal = (item?: any) => {
+  const handleOpenModal = (item?: DecryptedVaultItem) => {
     if (item) {
       setEditingItem(item);
       setFormData({

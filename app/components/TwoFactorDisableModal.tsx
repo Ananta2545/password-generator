@@ -45,8 +45,12 @@ export default function TwoFactorDisableModal({
       // Reset form
       setPassword("");
       setToken("");
-    } catch (err: any) {
-      setError(err.message || "Failed to disable 2FA. Please try again.");
+    } catch (err: unknown) {
+        let message = "Failed to disable 2FA. Please try again."
+        if(err instanceof Error){
+            message = err.message;
+        }
+      setError(message || "Failed to disable 2FA. Please try again.");
     } finally {
       setLocalLoading(false);
     }
@@ -108,7 +112,7 @@ export default function TwoFactorDisableModal({
             {/* Warning */}
             <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
               <p className="text-sm text-yellow-800 dark:text-yellow-300">
-                ⚠️ Disabling 2FA will make your account less secure. You'll only need your password to sign in.
+                ⚠️ Disabling 2FA will make your account less secure. You&apos;ll only need your password to sign in.
               </p>
             </div>
 

@@ -49,8 +49,12 @@ export default function VaultAccessModal({
       setPassword("");
       setTwoFactorCode("");
       setError("");
-    } catch (err: any) {
-      setError(err.message || "Verification failed");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Verification failed");
+      }
     } finally {
       setLoading(false);
     }

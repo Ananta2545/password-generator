@@ -5,7 +5,6 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Copy, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
-import Header from "@/app/components/Header";
 import Image from "next/image";
 import { initEnable2FA, verifyAndEnable2FA } from "@/app/lib/twoFactorAuth";
 
@@ -59,8 +58,8 @@ export default function SignupPage() {
       } else {
         setError(data.message || "Signup failed");
       }
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      setError(`Something went wrong. Please try again. ${err}`);
     } finally {
       setLoading(false);
     }
@@ -75,9 +74,13 @@ export default function SignupPage() {
       setQrCode(data.qrCode || "");
       setSecret(data.secret || "");
       setStep("2fa-setup");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Setup 2FA error:", err);
-      setError(err.message || "Failed to setup 2FA. Please try again.");
+      let message = "Failed to setup 2FA. Please try again.";
+      if(err instanceof Error){
+        message = err.message;
+      }
+      setError(message || "Failed to setup 2FA. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -92,11 +95,14 @@ export default function SignupPage() {
       // ✅ Pass the 6-digit verification token from the authenticator app
       await verifyAndEnable2FA(verificationToken);
       sessionStorage.removeItem("authToken");
-      
       // Redirect to signin
       router.push("/auth/signin?registered=true&twofa=enabled");
-    } catch (err: any) {
-      setError(err.message || "Verification failed. Please try again.");
+    } catch (err: unknown) {
+        let message = "Verification failed. Please try again.";
+        if(err instanceof Error){
+            message = err.message;
+        }
+      setError(message || "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -405,7 +411,7 @@ export default function SignupPage() {
                     className="w-full py-3 rounded-xl font-semibold transition-all duration-300 hover:shadow-lg"
                     style={{ backgroundColor: "var(--btn-bg)", color: "#fff" }}
                   >
-                    I've Scanned the Code
+                    I&apos;ve Scanned the Code
                   </motion.button>
 
                   <button

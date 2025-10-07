@@ -1,10 +1,9 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Menu, X, Shield, Lock, Zap, Check } from "lucide-react";
+import { Shield, Lock, Zap } from "lucide-react";
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);

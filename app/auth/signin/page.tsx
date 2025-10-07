@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
-import Header from "@/app/components/Header";
 import { verify2FALogin } from "@/app/lib/twoFactorAuth";
 import { useUser } from "@/app/contexts/UserContext";
 
@@ -59,8 +58,8 @@ function SigninContent() {
       } else {
         setError(data.message || "Invalid email or password");
       }
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+    } catch (error) {
+      setError(`Something went wrong. Please try again. ${error}`);
     } finally {
       setLoading(false);
     }
@@ -79,8 +78,12 @@ function SigninContent() {
         setUser(data.user); // ✅ Save to context (also saves to localStorage)
       }
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message || "Verification failed. Please try again.");
+    } catch (err: unknown) {
+        let message = "Verification failed. Please try again.";
+        if(err instanceof Error){
+            message = err.message;
+        }
+      setError(message || "Verification failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -220,7 +223,7 @@ function SigninContent() {
                 </form>
 
                 <p style={{ color: "var(--text-muted)" }} className="mt-6 text-center text-sm">
-                  Don't have an account?{" "}
+                  Don&apos;t have an account?{" "}
                   <Link href="/auth/signup" style={{ color: "var(--btn-bg)" }} className="font-semibold hover:underline">
                     Sign Up
                   </Link>

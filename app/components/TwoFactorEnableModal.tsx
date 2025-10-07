@@ -46,8 +46,12 @@ export default function TwoFactorEnableModal({
     try {
       await onVerify(verificationToken);
       // Success handling is done in parent component
-    } catch (err: any) {
-      setError(err.message || "Verification failed. Please try again.");
+    } catch (err: unknown) {
+        let message = "Verification failed. Please try again.";
+        if(err instanceof Error){
+            message = err.message;
+        }
+      setError(message || "Verification failed. Please try again.");
     } finally {
       setLocalLoading(false);
     }

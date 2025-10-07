@@ -78,9 +78,13 @@ export default function ProfilePage() {
       setSecret(data.secret || "");
       setQrCode(data.qrCode || "");
       setShowEnableModal(true);
-    } catch (err: any) {
-      console.error("Enable 2FA error:", err);
-      setError(err.message || "Failed to generate 2FA setup");
+    } catch (error: unknown) {
+      console.error("Enable 2FA error:", error);
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Failed to generate 2FA setup");
+      }
       setTimeout(() => setError(""), 3000);
     } finally {
       setLoading(false);
@@ -90,15 +94,15 @@ export default function ProfilePage() {
   // ✅ Enable 2FA - Step 2: Verify Token
   const handleVerifyEnable2FA = async (token: string) => {
     try {
-      const data = await verifyAndEnable2FA(token);
+      await verifyAndEnable2FA(token);
       updateUser({ twoFactorEnabled: true });
       setSuccess("Two-factor authentication enabled successfully!");
       setShowEnableModal(false);
       setQrCode("");
       setSecret("");
       setTimeout(() => setSuccess(""), 3000);
-    } catch (err: any) {
-      throw err; // Let modal handle the error
+    } catch (error: unknown) {
+      throw error; // Let modal handle the error
     }
   };
 
@@ -110,8 +114,8 @@ export default function ProfilePage() {
       setSuccess("Two-factor authentication disabled successfully!");
       setShowDisableModal(false);
       setTimeout(() => setSuccess(""), 3000);
-    } catch (err: any) {
-      throw err; // Let modal handle the error
+    } catch (error: unknown) {
+      throw error; // Let modal handle the error
     }
   };
 

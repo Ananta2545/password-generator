@@ -84,7 +84,7 @@ export async function POST(req: NextRequest){
         return response;
 
     }catch(error: unknown){
-        let message = "Signup failed";
+        const message = "Signup failed";
         console.log("Signup error", error);
         return NextResponse.json({
             success: false, message, error: message

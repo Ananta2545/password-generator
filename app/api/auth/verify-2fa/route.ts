@@ -2,7 +2,7 @@ import { connectDB } from "@/app/lib/mongodb";
 import User from "@/app/models/user";
 import { NextRequest, NextResponse } from "next/server";
 import speakeasy from 'speakeasy';
-import { verifyToken, generateToken } from "@/app/lib/jwt";
+import { verifyToken} from "@/app/lib/jwt";
 
 export async function POST(req: NextRequest) {
     try {

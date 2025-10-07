@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = req.cookies.get('token')?.value;
@@ -30,11 +30,12 @@ export async function GET(
       );
     }
 
+    const {id} = await params;
     await connectDB();
 
     // Find item and verify ownership
     const item = await VaultItem.findOne({
-      _id: params.id,
+      _id: id,
       userId: decoded.userId,
     }).select('-__v').lean();
 
@@ -70,7 +71,7 @@ export async function GET(
  */
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = req.cookies.get('token')?.value;
@@ -102,10 +103,15 @@ export async function PUT(
       );
     }
 
+    const {id} = await params;
     await connectDB();
 
     // Build update object
-    const updateData: any = {
+    const updateData: {
+        lastModified: Date;
+        encryptedData?: string;
+        tags?: string[];
+    } = {
       lastModified: new Date(),
     };
 
@@ -119,7 +125,7 @@ export async function PUT(
 
     // Update item and verify ownership
     const item = await VaultItem.findOneAndUpdate(
-      { _id: params.id, userId: decoded.userId },
+      { _id: id, userId: decoded.userId },
       updateData,
       { new: true, runValidators: true }
     ).select('-__v').lean();
@@ -152,7 +158,7 @@ export async function PUT(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const token = req.cookies.get('token')?.value;
@@ -173,11 +179,13 @@ export async function DELETE(
       );
     }
 
+    const {id} = await params;
+
     await connectDB();
 
     // Delete item and verify ownership
     const item = await VaultItem.findOneAndDelete({
-      _id: params.id,
+      _id: id,
       userId: decoded.userId,
     });
 

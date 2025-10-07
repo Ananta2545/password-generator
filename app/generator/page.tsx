@@ -17,7 +17,7 @@ export default function GeneratorPage() {
   
   const [password, setPassword] = useState("");
   const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const loading = false; // Not used for generation, only for UI state
   
   const [options, setOptions] = useState<PasswordOptions>({
     length: 16,
@@ -40,21 +40,22 @@ export default function GeneratorPage() {
     }
   }, [user, userLoading, router, mounted]);
 
+  const handleGenerate = () => {
+    try {
+      const newPassword = generatePassword(options);
+      setPassword(newPassword);
+    } catch (error: unknown) {
+      console.error("Generate error:", error instanceof Error ? error.message : "Unknown error");
+    }
+  };
+
   useEffect(() => {
     // Generate initial password
     if (mounted && user) {
       handleGenerate();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, user]);
-
-  const handleGenerate = () => {
-    try {
-      const newPassword = generatePassword(options);
-      setPassword(newPassword);
-    } catch (err: any) {
-      console.error("Generate error:", err);
-    }
-  };
 
   const handleCopy = async () => {
     try {

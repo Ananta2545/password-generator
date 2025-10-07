@@ -62,7 +62,7 @@ export async function POST(req: NextRequest){
             secret: twoFactorSecret.base32,
         }, {status: 200});
     }catch(error: unknown){
-        let message = "Enable 2fa failed";
+        const message = "Enable 2fa failed";
         console.log("Enable 2fa error", error);
         return NextResponse.json({
             success: false, message, error: message

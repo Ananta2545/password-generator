@@ -68,8 +68,8 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
               createdAt: item.createdAt,
               lastModified: item.lastModified,
             };
-          } catch (err) {
-            console.error("Failed to decrypt item:", item._id);
+          } catch (err: unknown) {
+            console.error(`Failed to decrypt item: ${err}`, item._id);
             return null;
           }
         }).filter(Boolean);
@@ -78,8 +78,8 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       } else {
         setError(data.message || "Failed to fetch items");
       }
-    } catch (err) {
-      setError("Failed to fetch vault items");
+    } catch (err: unknown) {
+      setError(`Failed to fetch vault items: ${err}`);
       console.error("Fetch items error:", err);
     } finally {
       setLoading(false);
@@ -122,8 +122,12 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(result.message || "Failed to create item");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to create vault item");
+    } catch (err: unknown) {
+      let message = "Failed to create vault item";
+      if(err instanceof Error){
+        message = err.message;
+      }
+      setError(message || "Failed to create vault item");
       throw err;
     } finally {
       setLoading(false);
@@ -164,8 +168,12 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(result.message || "Failed to update item");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to update vault item");
+    } catch (err: unknown) {
+      let message = "Failed to update vault item";
+      if(err instanceof Error){
+        message = err.message;
+      }
+      setError(message || "Failed to update vault item");
       throw err;
     } finally {
       setLoading(false);
@@ -196,8 +204,12 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       } else {
         throw new Error(result.message || "Failed to delete item");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to delete vault item");
+    } catch (err: unknown) {
+      let message = "Failed to delete vault item";
+      if(err instanceof Error){
+        message = err.message;
+      }
+      setError(message || "Failed to delete vault item");
       throw err;
     } finally {
       setLoading(false);
@@ -211,6 +223,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     } else {
       setItems([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, encryptionKey]);
 
   // Fetch item count when user logs in (doesn't require encryption key)
