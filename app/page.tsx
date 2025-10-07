@@ -126,7 +126,7 @@ export default function LandingPage() {
         className="mt-24 text-sm text-center px-4"
         style={{ color: "var(--text-muted)" }}
       >
-        Built with ❤️ using Next.js, TypeScript, and TailwindCSS
+        Built by Ananta Chatterjee using Next.js, TypeScript, and TailwindCSS
       </motion.footer>
     </div>
   );
