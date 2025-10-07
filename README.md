@@ -742,18 +742,6 @@ npx prettier --write .
 **Madquick Digital Agency**
 - 🏢 Company: [Web Development Company Top](https://in.linkedin.com/company/web-development-company-top)
 - 👔 Founder: [Setu Agrawal](https://in.linkedin.com/in/setu-agrawal-1032681aa)
-
----
-
-## 🙏 Acknowledgments
-
-- **Next.js Team** - Amazing framework
-- **Vercel** - Excellent hosting platform
-- **MongoDB** - Reliable database
-- **crypto-js** - Encryption library
-- **Framer Motion** - Beautiful animations
-- **Lucide** - Clean icon set
-
 ---
 
 ### ⭐ Star this repo if you found it helpful!
