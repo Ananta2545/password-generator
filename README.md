@@ -415,6 +415,108 @@ Navigate to [http://localhost:3000](http://localhost:3000)
    - Edit items with pencil icon
    - Delete items with custom confirmation modal
 
+---
+
+## 🛡️ Securing Your Vault: 2FA vs No 2FA
+
+Choose your security level based on your needs:
+
+### 🔒 **Option 1: Standard Security (Without 2FA)**
+
+**Best for:** Personal use, less sensitive data, quick access needs
+
+**Setup Steps:**
+1. ✅ Create account (email + password)
+2. ✅ Start using vault immediately
+3. ✅ Access requires: **Password only**
+
+**Vault Access Flow:**
+```
+Click "Vault" → Enter Password → Enter Encryption Key → ✅ Access Granted
+```
+
+**Security Level:** 🔒 **Medium**
+- Protected by account password
+- Encrypted with your personal encryption key
+- Faster access (1 verification step)
+
+**When to use:**
+- ✅ You want quick access to your vault
+- ✅ You're the only one using your device
+- ✅ Your passwords are not highly sensitive
+- ✅ You prefer convenience over maximum security
+
+---
+
+### 🔒🔒 **Option 2: Maximum Security (With 2FA)**
+
+**Best for:** Sensitive data, shared devices, maximum protection
+
+**Setup Steps:**
+1. ✅ Create account (email + password)
+2. ✅ Go to **Profile** → Click "Enable Two-Factor Authentication"
+3. ✅ Scan QR code with authenticator app (Google Authenticator, Authy, etc.)
+4. ✅ Enter 6-digit code to confirm
+5. ✅ 2FA is now active! 🎉
+
+**Vault Access Flow:**
+```
+Click "Vault" → Enter Password + 2FA Code → Enter Encryption Key → ✅ Access Granted
+```
+
+**Security Level:** 🔒🔒 **High**
+- Protected by account password + time-based code
+- Even if password is stolen, attacker needs your phone
+- Encrypted with your personal encryption key
+- Industry-standard TOTP authentication
+
+**When to use:**
+- ✅ You store highly sensitive passwords
+- ✅ You use shared or public computers
+- ✅ You want maximum protection
+- ✅ You have an authenticator app on your phone
+
+**Supported Authenticator Apps:**
+- Google Authenticator (iOS/Android)
+- Microsoft Authenticator (iOS/Android)
+- Authy (iOS/Android/Desktop)
+- 1Password (iOS/Android/Desktop)
+- Any TOTP-compatible app
+
+---
+
+### 📊 **Quick Comparison**
+
+| Feature | Without 2FA 🔒 | With 2FA 🔒🔒 |
+|---------|----------------|---------------|
+| **Setup Time** | Instant | 2 minutes |
+| **Vault Access** | Password only | Password + 6-digit code |
+| **Access Speed** | ~10 seconds | ~15 seconds |
+| **Protection** | Password breach vulnerable | Protected even if password stolen |
+| **Best For** | Quick access, personal use | Maximum security, sensitive data |
+| **Required** | Account password | Account password + phone with authenticator |
+
+---
+
+### 🔄 **Switching Between Security Levels**
+
+**Enable 2FA Later (Upgrade Security):**
+1. Go to **Profile** page
+2. Click **"Enable Two-Factor Authentication"**
+3. Scan QR code with authenticator app
+4. Enter verification code
+5. ✅ 2FA now protects your vault
+
+**Disable 2FA (Downgrade Security):**
+1. Go to **Profile** page
+2. Click **"Disable Two-Factor Authentication"**
+3. Enter your password + current 2FA code
+4. ✅ 2FA removed, back to password-only
+
+**💡 Pro Tip:** You can enable/disable 2FA anytime without losing your vault data!
+
+---
+
 ### 2️⃣ Enabling 2FA (Optional but Recommended)
 
 1. Go to **Profile** (`/profile`)
@@ -434,7 +536,189 @@ Navigate to [http://localhost:3000](http://localhost:3000)
 3. Enter password and current 2FA code
 4. ✅ 2FA removed from account
 
-### 4️⃣ Theme Toggle
+### 4️⃣ Accessing Vault: Detailed Workflows
+
+The vault has a **two-layer security system**: Identity Verification + Encryption Key.
+
+#### 🔐 **Scenario A: Accessing Vault WITHOUT 2FA**
+
+```
+Step 1: Navigate to Vault
+┌──────────────────────────────────────────┐
+│  User clicks "Vault" in navigation       │
+└──────────────────────────────────────────┘
+                  ↓
+Step 2: Vault Access Verification Modal Appears
+┌──────────────────────────────────────────┐
+│  Modal Title: "Verify Your Identity"    │
+│                                          │
+│  [Password Input Field]                  │
+│  ● Enter your account password           │
+│                                          │
+│  [Verify Access Button]                  │
+└──────────────────────────────────────────┘
+                  ↓
+Step 3: Password Verification
+┌──────────────────────────────────────────┐
+│  System checks:                          │
+│  ✓ Password matches bcrypt hash          │
+│  ✓ User is authenticated                 │
+└──────────────────────────────────────────┘
+                  ↓
+Step 4: Encryption Key Prompt Appears
+┌──────────────────────────────────────────┐
+│  Modal Title: "Enter Encryption Key"    │
+│                                          │
+│  "Your encryption key is required to     │
+│   decrypt your vault items. This key     │
+│   is never sent to the server."          │
+│                                          │
+│  [Encryption Key Input Field]            │
+│  ● Enter the key you used when saving    │
+│                                          │
+│  [Unlock Vault Button]                   │
+└──────────────────────────────────────────┘
+                  ↓
+Step 5: Key Validation (Client-Side)
+┌──────────────────────────────────────────┐
+│  System validates key by:                │
+│  1. Fetching encrypted items from server │
+│  2. Attempting to decrypt first item     │
+│  3. If successful → Key is correct ✓     │
+│  4. If fails → "Invalid key" error ✗     │
+└──────────────────────────────────────────┘
+                  ↓
+Step 6: Vault Unlocked! 🎉
+┌──────────────────────────────────────────┐
+│  ✓ All items decrypted client-side      │
+│  ✓ View, edit, delete, search enabled   │
+│  ✓ Encryption key stored in memory      │
+│  ✓ Key cleared when leaving vault       │
+└──────────────────────────────────────────┘
+```
+
+**User Experience:**
+1. Click "Vault" → Enter password → Enter encryption key → Access granted
+2. **Total steps: 2 prompts** (password, then encryption key)
+3. **Time: ~10 seconds**
+
+---
+
+#### 🔐🔐 **Scenario B: Accessing Vault WITH 2FA Enabled**
+
+```
+Step 1: Navigate to Vault
+┌──────────────────────────────────────────┐
+│  User clicks "Vault" in navigation       │
+└──────────────────────────────────────────┘
+                  ↓
+Step 2: Vault Access Verification Modal Appears (with 2FA)
+┌──────────────────────────────────────────┐
+│  Modal Title: "Verify Your Identity"    │
+│                                          │
+│  [Password Input Field]                  │
+│  ● Enter your account password           │
+│                                          │
+│  [2FA Code Input Field]                  │
+│  ● Enter 6-digit code from your          │
+│    authenticator app (Google Auth,       │
+│    Authy, etc.)                          │
+│                                          │
+│  ⏱️ Code expires every 30 seconds        │
+│                                          │
+│  [Verify Access Button]                  │
+└──────────────────────────────────────────┘
+                  ↓
+Step 3: Password + 2FA Verification
+┌──────────────────────────────────────────┐
+│  System checks:                          │
+│  ✓ Password matches bcrypt hash          │
+│  ✓ 2FA token is valid (TOTP)            │
+│  ✓ Token is within 30-sec window        │
+│  ✓ User is authenticated                 │
+└──────────────────────────────────────────┘
+                  ↓
+Step 4: Encryption Key Prompt Appears
+┌──────────────────────────────────────────┐
+│  Modal Title: "Enter Encryption Key"    │
+│                                          │
+│  "Your encryption key is required to     │
+│   decrypt your vault items. This key     │
+│   is never sent to the server."          │
+│                                          │
+│  [Encryption Key Input Field]            │
+│  ● Enter the key you used when saving    │
+│                                          │
+│  [Unlock Vault Button]                   │
+└──────────────────────────────────────────┘
+                  ↓
+Step 5: Key Validation (Client-Side)
+┌──────────────────────────────────────────┐
+│  System validates key by:                │
+│  1. Fetching encrypted items from server │
+│  2. Attempting to decrypt first item     │
+│  3. If successful → Key is correct ✓     │
+│  4. If fails → "Invalid key" error ✗     │
+└──────────────────────────────────────────┘
+                  ↓
+Step 6: Vault Unlocked! 🎉
+┌──────────────────────────────────────────┐
+│  ✓ All items decrypted client-side      │
+│  ✓ View, edit, delete, search enabled   │
+│  ✓ Encryption key stored in memory      │
+│  ✓ Key cleared when leaving vault       │
+└──────────────────────────────────────────┘
+```
+
+**User Experience:**
+1. Click "Vault" → Enter password + 2FA code → Enter encryption key → Access granted
+2. **Total steps: 2 prompts** (password+2FA, then encryption key)
+3. **Time: ~15 seconds**
+
+---
+
+#### 🔑 **Key Differences Between 2FA vs No 2FA**
+
+| Feature | Without 2FA | With 2FA |
+|---------|-------------|----------|
+| **Step 1** | Password only | Password + 6-digit code |
+| **Security Level** | 🔒 Medium | 🔒🔒 High |
+| **Access Time** | ~10 seconds | ~15 seconds |
+| **Protection** | Password only | Password + time-based token |
+| **Recommended For** | Personal use | Sensitive data |
+
+---
+
+#### 🛡️ **Security Notes**
+
+**Why Two Layers?**
+1. **Layer 1 (Password/2FA):** Proves you are the account owner
+2. **Layer 2 (Encryption Key):** Proves you know the encryption key
+
+**Why Not Just Password?**
+- If someone steals your password, they still can't decrypt your vault
+- **Zero-knowledge architecture:** Server never knows your encryption key
+- Even with full database access, data remains encrypted
+
+**Encryption Key Best Practices:**
+- ✅ Use a strong, memorable passphrase (e.g., "MyDog$Name!2024")
+- ✅ Different from your account password
+- ✅ Store it securely (password manager, secure notes)
+- ❌ Don't forget it! There's no recovery option
+- ❌ Server cannot reset it (by design)
+
+**Session Behavior:**
+- Encryption key is stored **only in browser memory** (React Context)
+- Key is **automatically cleared** when:
+  - You logout
+  - You navigate away from vault
+  - You close the browser tab
+  - Browser crashes
+- Next visit requires re-entering the key (security by design)
+
+---
+
+### 5️⃣ Theme Toggle
 
 - Click moon/sun icon in header
 - Dark mode reduces eye strain
