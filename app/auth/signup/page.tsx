@@ -45,14 +45,6 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (data.success) {
-        // if (data.user) {
-        //   localStorage.setItem("user", JSON.stringify(data.user));
-        // }
-
-        // ✅ Store token in sessionStorage
-        // if (data.token) {
-        //     sessionStorage.setItem("authToken", data.token);
-        // }
 
         // Check if user wants to enable 2FA
         if (enable2FA) {
@@ -97,15 +89,8 @@ export default function SignupPage() {
     setError("");
 
     try {
-      const token = sessionStorage.getItem("authToken");
-
-      if (!token) {
-        setError("Authentication token not found. Please sign in again.");
-        setLoading(false);
-        return;
-      }
-
-      await verifyAndEnable2FA(verificationToken, token);
+      // ✅ Pass the 6-digit verification token from the authenticator app
+      await verifyAndEnable2FA(verificationToken);
       sessionStorage.removeItem("authToken");
       
       // Redirect to signin

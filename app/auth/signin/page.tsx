@@ -1,18 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import Header from "@/app/components/Header";
 import { verify2FALogin } from "@/app/lib/twoFactorAuth";
+import { useUser } from "@/app/contexts/UserContext";
 
-export default function SigninPage() {
+// ✅ Extract the component that uses useSearchParams
+function SigninContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered");
   const twofa = searchParams.get("twofa");
+  const { setUser } = useUser();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -24,7 +27,6 @@ export default function SigninPage() {
   
   // 2FA States
   const [step, setStep] = useState<"signin" | "2fa-verify">("signin");
-  const [tempToken, setTempToken] = useState("");
   const [twoFactorToken, setTwoFactorToken] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,12 +47,12 @@ export default function SigninPage() {
       if (data.success) {
         // Check if 2FA is required
         if (data.require2FA) {
-          setTempToken(data.tempToken);
+          // ✅ No need to store tempToken - it's already in cookies
           setStep("2fa-verify");
         } else {
-          // No 2FA required, redirect to dashboard
+          // No 2FA required, save user and redirect
           if (data.user) {
-            localStorage.setItem("user", JSON.stringify(data.user));
+            setUser(data.user); // ✅ Save to context (also saves to localStorage)
           }
           router.push("/dashboard");
         }
@@ -74,7 +76,7 @@ export default function SigninPage() {
       
       // Store user info and redirect
       if (data.user) {
-        localStorage.setItem("user", JSON.stringify(data.user));
+        setUser(data.user); // ✅ Save to context (also saves to localStorage)
       }
       router.push("/dashboard");
     } catch (err: any) {
@@ -87,7 +89,6 @@ export default function SigninPage() {
   const backToSignin = () => {
     setStep("signin");
     setTwoFactorToken("");
-    setTempToken("");
     setError("");
   };
 
@@ -326,7 +327,7 @@ export default function SigninPage() {
                   }}
                 >
                   <p style={{ color: "var(--text-muted)" }} className="text-xs">
-                    💡 <strong style={{ color: "var(--text)" }}>Tip:</strong> Open your authenticator app and enter the 6-digit code shown for PassGenPro.
+                                        💡 <strong style={{ color: "var(--text)" }}>Tip:</strong> Open your authenticator app and enter the 6-digit code shown for PassGenPro.
                   </p>
                 </motion.div>
               </>
@@ -335,5 +336,18 @@ export default function SigninPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+// ✅ Wrap with Suspense to fix hydration mismatch
+export default function SigninPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    }>
+      <SigninContent />
+    </Suspense>
   );
 }

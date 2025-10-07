@@ -7,17 +7,27 @@ import { verifyToken, generateToken } from "@/app/lib/jwt";
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { token: twoFactorToken, tempToken } = body;
+        const { token: twoFactorToken } = body;
 
-        if (!twoFactorToken || !tempToken) {
+        if (!twoFactorToken) {
             return NextResponse.json(
-                { success: false, message: "2FA token and temp token required" },
+                { success: false, message: "2FA token required" },
                 { status: 400 }
             );
         }
 
-        // Verify temporary JWT token
-        const decoded = verifyToken(tempToken);
+        // ✅ Read JWT token from cookies (set during signin)
+        const jwtToken = req.cookies.get('token')?.value;
+        
+        if (!jwtToken) {
+            return NextResponse.json(
+                { success: false, message: "Authentication session not found. Please sign in again." },
+                { status: 401 }
+            );
+        }
+
+        // Verify JWT token from cookies
+        const decoded = verifyToken(jwtToken);
         if (!decoded) {
             return NextResponse.json(
                 { success: false, message: "Invalid or expired session" },
@@ -58,14 +68,12 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Generate final JWT token
-        const jwtToken = generateToken(user._id.toString(), user.email);
-
+        // ✅ 2FA verified successfully - the JWT token is already in cookies
+        // No need to generate a new token, just return success
         const response = NextResponse.json(
             {
                 success: true,
                 message: "Login successful",
-                token: jwtToken,
                 user: {
                     id: user._id.toString(),
                     firstName: user.firstName,
@@ -77,15 +85,7 @@ export async function POST(req: NextRequest) {
             { status: 200 }
         );
 
-        // Set cookie
-        response.cookies.set('token', jwtToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            path: '/',
-            maxAge: 7 * 24 * 60 * 60, // 7 days
-        });
-
+        // ✅ Cookie is already set from signin endpoint, no need to set again
         return response;
 
     } catch (error: unknown) {

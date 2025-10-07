@@ -17,9 +17,11 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Get JWT token from Authorization header
-        const authHeader = req.headers.get('authorization');
-        const jwtToken = authHeader?.replace('Bearer ', '');
+        // ✅ Get JWT token from cookies OR Authorization header
+        const jwtToken = req.cookies.get('token')?.value || req.headers.get('authorization')?.replace('Bearer ', '');
+
+        console.log('🔍 JWT Token from cookies:', req.cookies.get('token')?.value ? 'Found' : 'Not found');
+        console.log('🔍 JWT Token from header:', req.headers.get('authorization') ? 'Found' : 'Not found');
 
         if (!jwtToken) {
             return NextResponse.json(
@@ -30,6 +32,8 @@ export async function POST(req: NextRequest) {
 
         // Verify JWT token
         const decoded = verifyToken(jwtToken);
+        console.log('🔍 Decoded token:', decoded);
+
         if (!decoded) {
             return NextResponse.json(
                 { success: false, message: "Invalid or expired token" },

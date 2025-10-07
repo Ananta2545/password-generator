@@ -2,18 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Mail, Shield, Edit2, Save, X, Loader2, AlertTriangle, ArrowLeft, Eye, EyeOff, QrCode as QrCodeIcon, Copy, Check } from "lucide-react";
+import { Mail, Shield, Edit2, Save, X, Loader2, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/app/contexts/UserContext";
 import Link from "next/link";
-import QRCode from "qrcode";
-import { initEnable2FA, verifyAndEnable2FA, disable2FA } from "@/app/lib/twoFactorAuth";
 import TwoFactorEnableModal from "@/app/components/TwoFactorEnableModal";
 import TwoFactorDisableModal from "@/app/components/TwoFactorDisableModal";
+import { initEnable2FA, verifyAndEnable2FA, disable2FA } from "@/app/lib/twoFactorAuth";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, updateUser } = useUser();
+  const { user, updateUser, loading: userLoading } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,6 +25,19 @@ export default function ProfilePage() {
     firstName: "",
     lastName: "",
   });
+  const [mounted, setMounted] = useState(false); // ✅ Add mounted state
+
+  // ✅ Set mounted to true on client side only
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // ✅ Only redirect if mounted and NOT loading and user is null
+  useEffect(() => {
+    if (mounted && !userLoading && !user) {
+      router.push("/auth/signin");
+    }
+  }, [user, userLoading, router, mounted]);
 
   useEffect(() => {
     if (user) {
@@ -33,10 +45,8 @@ export default function ProfilePage() {
         firstName: user.firstName,
         lastName: user.lastName,
       });
-    } else {
-      router.push("/auth/signin");
     }
-  }, [user, router]);
+  }, [user]);
 
   const handleSave = () => {
     updateUser({
@@ -69,6 +79,7 @@ export default function ProfilePage() {
       setQrCode(data.qrCode || "");
       setShowEnableModal(true);
     } catch (err: any) {
+      console.error("Enable 2FA error:", err);
       setError(err.message || "Failed to generate 2FA setup");
       setTimeout(() => setError(""), 3000);
     } finally {
@@ -78,24 +89,52 @@ export default function ProfilePage() {
 
   // ✅ Enable 2FA - Step 2: Verify Token
   const handleVerifyEnable2FA = async (token: string) => {
-    const data = await verifyAndEnable2FA(token);
-    updateUser({ twoFactorEnabled: true });
-    setSuccess("Two-factor authentication enabled successfully!");
-    setShowEnableModal(false);
-    setQrCode("");
-    setSecret("");
-    setTimeout(() => setSuccess(""), 3000);
+    try {
+      const data = await verifyAndEnable2FA(token);
+      updateUser({ twoFactorEnabled: true });
+      setSuccess("Two-factor authentication enabled successfully!");
+      setShowEnableModal(false);
+      setQrCode("");
+      setSecret("");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      throw err; // Let modal handle the error
+    }
   };
 
   // ✅ Disable 2FA
   const handleDisable2FA = async (password: string, token: string) => {
-    await disable2FA(password, token);
-    updateUser({ twoFactorEnabled: false });
-    setSuccess("Two-factor authentication disabled successfully!");
-    setShowDisableModal(false);
-    setTimeout(() => setSuccess(""), 3000);
+    try {
+      await disable2FA(password, token);
+      updateUser({ twoFactorEnabled: false });
+      setSuccess("Two-factor authentication disabled successfully!");
+      setShowDisableModal(false);
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (err: any) {
+      throw err; // Let modal handle the error
+    }
   };
 
+  // ✅ Show nothing on server-side render to prevent hydration mismatch
+  if (!mounted) {
+    return null;
+  }
+
+  // ✅ Show loading spinner while checking auth (client-side only)
+  if (userLoading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          background: `linear-gradient(to bottom right, var(--bg-gradient-start), var(--bg-gradient-end))`,
+        }}
+      >
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--btn-bg)" }} />
+      </div>
+    );
+  }
+
+  // ✅ Don't render if no user (will redirect)
   if (!user) return null;
 
   return (
@@ -372,7 +411,7 @@ export default function ProfilePage() {
         </motion.div>
       </div>
 
-      {/* ✅ Enable 2FA Modal */}
+      {/* Enable 2FA Modal */}
       <TwoFactorEnableModal
         isOpen={showEnableModal}
         onClose={() => {
@@ -383,7 +422,6 @@ export default function ProfilePage() {
         qrCode={qrCode}
         secret={secret}
         onVerify={handleVerifyEnable2FA}
-        loading={loading}
       />
 
       {/* Disable 2FA Modal */}
@@ -391,7 +429,6 @@ export default function ProfilePage() {
         isOpen={showDisableModal}
         onClose={() => setShowDisableModal(false)}
         onDisable={handleDisable2FA}
-        loading={loading}
       />
     </div>
   );

@@ -42,12 +42,12 @@ export async function POST(req: NextRequest){
         if(user.twoFactorEnabled){
             const tempToken = generateToken(user._id.toString(), email);
 
-            return NextResponse.json(
+            // ✅ Set token in cookie so verify-2fa can read it
+            const response = NextResponse.json(
                 {
                     success: true,
                     message: "2FA required",
                     require2FA: true,
-                    tempToken,
                     user: {
                         id: user._id.toString(),
                         firstName: user.firstName,
@@ -58,6 +58,16 @@ export async function POST(req: NextRequest){
                 },
                 {status: 200}
             );
+
+            response.cookies.set('token', tempToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict',
+                path: '/',
+                maxAge: 7*24*60*60, // 7 days
+            });
+
+            return response;
         }
 
         // if 2fa disabled, login directly
