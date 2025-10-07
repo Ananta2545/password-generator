@@ -8,7 +8,6 @@ import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { verify2FALogin } from "@/app/lib/twoFactorAuth";
 import { useUser } from "@/app/contexts/UserContext";
 
-// ✅ Extract the component that uses useSearchParams
 function SigninContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -24,7 +23,6 @@ function SigninContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  // 2FA States
   const [step, setStep] = useState<"signin" | "2fa-verify">("signin");
   const [twoFactorToken, setTwoFactorToken] = useState("");
 
@@ -44,14 +42,11 @@ function SigninContent() {
       const data = await res.json();
 
       if (data.success) {
-        // Check if 2FA is required
         if (data.require2FA) {
-          // ✅ No need to store tempToken - it's already in cookies
           setStep("2fa-verify");
         } else {
-          // No 2FA required, save user and redirect
           if (data.user) {
-            setUser(data.user); // ✅ Save to context (also saves to localStorage)
+            setUser(data.user);
           }
           router.push("/dashboard");
         }
